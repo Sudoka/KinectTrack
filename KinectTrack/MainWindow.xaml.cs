@@ -173,17 +173,24 @@ namespace KinectTrack
                 // This is in mm
                 int depth = rawData[depthIndex] >> DepthImageFrame.PlayerIndexBitmaskWidth;
 
+                //Note that we only need to write to the non-zero indices (probably)
                 if (depth <= 900)
                 {
-                    pixels.setPixelColor(colorIndex, System.Drawing.Color.Blue);
+                    pixels[colorIndex + Utils.BlueIndex] = 255;
+                    //pixels[colorIndex + Utils.GreenIndex] = 0;
+                    //pixels[colorIndex + Utils.RedIndex] = 0;
                 }
                 if (depth > 900 && depth <= 2000)
                 {
-                    pixels.setPixelColor(colorIndex, System.Drawing.Color.LawnGreen);
+                   // pixels[colorIndex + Utils.BlueIndex] = 0;
+                    pixels[colorIndex + Utils.GreenIndex] = 255;
+                    //pixels[colorIndex + Utils.RedIndex] = 0;
                 }
                 if (depth > 2000)
                 {
-                    pixels.setPixelColor(colorIndex, System.Drawing.Color.Red);
+                    //pixels[colorIndex + Utils.BlueIndex] = 0;
+                    //pixels[colorIndex + Utils.GreenIndex] = 0;
+                    pixels[colorIndex + Utils.RedIndex] = 255;
                 }
             }
             return pixels;

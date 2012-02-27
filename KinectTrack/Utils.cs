@@ -27,17 +27,21 @@ namespace KinectTrack
             else return val;
         }
 
+        //TODO: For some reason, using this from inside of the event methods causes frame droppage
+        // not sure why
         /// <summary>
         /// Set the pixel at pixelIndex to be a given color
         /// </summary>
         /// <param name="pixelArray"></param>
         /// <param name="pixelIndex"></param>
         /// <param name="c"></param>
+        /*
         public static void setPixelColor(this byte[] pixelArray, int pixelIndex, Color c)
         {
             pixelArray[pixelIndex + BlueIndex] = c.B;
             pixelArray[pixelIndex + GreenIndex] = c.G;
             pixelArray[pixelIndex + RedIndex] = c.R;
         }
+        */
     }
 }
