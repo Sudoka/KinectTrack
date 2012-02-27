@@ -26,6 +26,8 @@ namespace KinectTrack
     {
         KinectSensor sensor;   //our sensor
 
+        private bool drawDepthFrame = false; 
+
         public MainWindow()
         {
             InitializeComponent();
@@ -88,7 +90,7 @@ namespace KinectTrack
             DepthImageFrame depthFrame = e.OpenDepthImageFrame();
             SkeletonFrame skelFrame = e.OpenSkeletonFrame();
 
-            if (depthFrame != null)
+            if (depthFrame != null && drawDepthFrame)
             {
                 byte[] pixels = generateColorPixels(depthFrame);
 
@@ -349,5 +351,16 @@ namespace KinectTrack
         {
 
         }
+
+        private void depthCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            drawDepthFrame = !drawDepthFrame;
+        }
+
+        private void depthCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            drawDepthFrame = !drawDepthFrame;
+        }
+        
     }
 }
