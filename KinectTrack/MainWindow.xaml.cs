@@ -90,6 +90,7 @@ namespace KinectTrack
             DepthImageFrame depthFrame = e.OpenDepthImageFrame();
             SkeletonFrame skelFrame = e.OpenSkeletonFrame();
 
+            //NOTE: Ideally, these would be in using blocks, but that fact that skelToBitmap needs the depthframe complicates things
             if (depthFrame != null && drawDepthFrame)
             {
                 byte[] pixels = generateColorPixels(depthFrame);
@@ -105,6 +106,7 @@ namespace KinectTrack
                     depthBmp.WritePixels(new Int32Rect(0, 0, depthFrame.Width, depthFrame.Height), pixels, stride, 0);
                 }
                 depthBox.Source = depthBmp;
+
                 
             }
             if (skelFrame != null)
@@ -115,8 +117,12 @@ namespace KinectTrack
                 {
                     SkelToBitmap(firstSkel, depthFrame);
                 }
-
             }
+
+            // Dispose of skelFrame and depthFrame
+            if (skelFrame != null) skelFrame.Dispose();
+            if (depthFrame != null) depthFrame.Dispose();
+
             //declare and initialize color, depth and skeleton objects
             //ColorImageFrame colorFrame = (ColorImageFrame) e.OpenColorImageFrame();
             //DepthImageFrame depthFrame = (DepthImageFrame)e.OpenDepthImageFrame();
@@ -178,21 +184,24 @@ namespace KinectTrack
                 //Note that we only need to write to the non-zero indices (probably)
                 if (depth <= 900)
                 {
-                    pixels[colorIndex + Utils.BlueIndex] = 255;
+                    pixels.setPixelColor(colorIndex, System.Drawing.Color.Blue);
+                    //pixels[colorIndex + Utils.BlueIndex] = 255;
                     //pixels[colorIndex + Utils.GreenIndex] = 0;
                     //pixels[colorIndex + Utils.RedIndex] = 0;
                 }
                 if (depth > 900 && depth <= 2000)
                 {
+                    pixels.setPixelColor(colorIndex, System.Drawing.Color.Red);
                    // pixels[colorIndex + Utils.BlueIndex] = 0;
-                    pixels[colorIndex + Utils.GreenIndex] = 255;
+                    //pixels[colorIndex + Utils.GreenIndex] = 255;
                     //pixels[colorIndex + Utils.RedIndex] = 0;
                 }
                 if (depth > 2000)
                 {
+                    pixels.setPixelColor(colorIndex, System.Drawing.Color.CadetBlue);
                     //pixels[colorIndex + Utils.BlueIndex] = 0;
                     //pixels[colorIndex + Utils.GreenIndex] = 0;
-                    pixels[colorIndex + Utils.RedIndex] = 255;
+                    //pixels[colorIndex + Utils.RedIndex] = 255;
                 }
             }
             return pixels;
