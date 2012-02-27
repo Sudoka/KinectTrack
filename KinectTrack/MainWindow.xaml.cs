@@ -16,6 +16,8 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Drawing;
+//NOTE: Color is aliased here to avoid conflicting with the class of the same name in System.Windows.Media
+using DColor = System.Drawing.Color;
 
 namespace KinectTrack
 {
@@ -122,32 +124,6 @@ namespace KinectTrack
             // Dispose of skelFrame and depthFrame
             if (skelFrame != null) skelFrame.Dispose();
             if (depthFrame != null) depthFrame.Dispose();
-
-            //declare and initialize color, depth and skeleton objects
-            //ColorImageFrame colorFrame = (ColorImageFrame) e.OpenColorImageFrame();
-            //DepthImageFrame depthFrame = (DepthImageFrame)e.OpenDepthImageFrame();
-            //SkeletonFrame skelFrame = (SkeletonFrame)e.OpenSkeletonFrame();
-/*
-            if (colorFrame != null)
-            {
-                Bitmap visBoxBMap = ImageToBitmap(colorFrame);
-                visBox.= visBoxBMap;
-            }
-            if (depthFrame != null)
-            {
-                Bitmap depBoxBMap = DepthToBitmap(depthFrame);
-                if (depBoxBMap !=null)
-                {
-                    depBox.Image = depBoxBMap;
-                }
-            }
-            if (skelFrame != null)
-            {
-                //Bitmap skelBoxBMap = SkelToBitmap(skelFrame);
-                //skelBox.Image = skelBoxBMap;
-                SkelToBitmap(skelFrame, e);
-            }
-            */
         }
 
         Skeleton getFirstSkeleton(SkeletonFrame frame)
@@ -179,9 +155,11 @@ namespace KinectTrack
 
                 // Get depth value
                 // This is in mm
+                // range for depth is 800-4000mm (2.5 feet - 13.1 feet) in normal mode
                 int depth = rawData[depthIndex] >> DepthImageFrame.PlayerIndexBitmaskWidth;
 
                 //Note that we only need to write to the non-zero indices (probably)
+                // NOTE: setPixelColor is likely to be slow when called with non-static colors
                 if (depth <= 900)
                 {
                     pixels.setPixelColor(colorIndex, System.Drawing.Color.Blue);
@@ -224,131 +202,11 @@ namespace KinectTrack
             var marg = visBox.Margin;
             var visLeft = marg.Left;
             var visTop = marg.Top;
-            // TODO: This is hacked up
+            // NOTE: This is hacked up
+            // NOTE: note that we have to divide the values in headColorPoint by 2 since we are displaying the images at 1/2 resolution
+            // TODO: determine if there is a way to do this without creating a new object on every call!
             faceImage.Margin = new Thickness(visLeft + (headColorPoint.X/2) - (faceImage.Width/2), visTop + (headColorPoint.Y/2) - (faceImage.Height /2), 0, 0);
 
-        }
-
-        private void moveElementToPoint(FrameworkElement element, ColorImagePoint point)
-        {
-//            Canvas.SetLeft(element, point.X - element.Width / 2);
- //           Canvas.SetTop(element, point.Y - element.Height / 2);
-        }
-
-        void addPointToBitMap(ColorImagePoint colorPoint)
-        {
-            /*
-            Bitmap bmp = (Bitmap)visBox.Image;
-            // Sometimes the colorPoint values are out of the legal range of the bmp
-            int maxX = bmp.Width;
-            int maxY = bmp.Height;
-            bmp.SetPixel(Utils.constrainInt(colorPoint.X, 0, maxX), Utils.constrainInt(colorPoint.Y, 0, maxY), Color.Lime);  //update TO DO
-            return;
-            */
-        }
-
-        Bitmap ImageToBitmap(ColorImageFrame Image)
-        {
-            /*
-            byte[] pixeldata = new byte[Image.PixelDataLength];
-            Image.CopyPixelDataTo(pixeldata);
-            Bitmap bmap = new Bitmap(Image.Width, Image.Height, PixelFormat.Format32bppRgb);
-            BitmapData bmapdata = bmap.LockBits(new Rectangle(0, 0, Image.Width, Image.Height), ImageLockMode.WriteOnly, bmap.PixelFormat);
-            IntPtr ptr = bmapdata.Scan0;
-            Marshal.Copy(pixeldata, 0, ptr, Image.PixelDataLength);
-            bmap.UnlockBits(bmapdata);
-            return bmap;
-            */
-            return null;
-        }
-        /*
-         *depthImageToBitmap - 
-         */
-        /* Bitmap ImageToBitmap(DepthImageFrame depthFrame)
-         {
-              //get the raw data from the kinect with depth for every pixel
-             short[] rawDepthData = new short[depthFrame.PixelDataLength];
-             depthFrame.CopyPixelDataTo(rawDepthData);
-
-             //use the depthFrame to create the image to display on screen
-             //depthFrame contains color information for all pixels in image
-             //height x width x 4 (R, G, B, empty byte)
-             Byte[] pixels = new byte[depthFrame.Height * depthFrame.Width * 4];
-
-             //initialize rgb constants
-             //hard coded locations for b, g, r
-             const int BlueIndex = 0;
-             const int GreenIndex = 1;
-             const int RedIndex = 2;
-
-             //loop through all distances
-             //pick a rgb value based on distance
-             for(int depthIndex=0, colorIndex=0; (depthIndex<rawDepthData.Length
-                 && colorIndex < pixels.Length); depthIndex++, colorIndex+=4){
-                     //get the player
-                     int player = rawDepthData[depthIndex] & DepthImageFrame.PlayerIndexBitmask;
-                     //get depth
-                     int depth = rawDepthData[depthIndex] >> DepthImageFrame.PlayerIndexBitmaskWidth;
-                    
-                 if (depth <= 900)
-                     {   //super close
-                         pixels[colorIndex + BlueIndex] = 255;
-                         pixels[colorIndex + GreenIndex] = 0;
-                         pixels[colorIndex + RedIndex] = 0;
-                     }
-
-
-                     if (depth > 900 && depth < 2000)
-                     {   //super close
-                         pixels[colorIndex + BlueIndex] = 0;
-                         pixels[colorIndex + GreenIndex] = 255;
-                         pixels[colorIndex + RedIndex] = 0;
-                     }
-
-                     if (depth > 2000)
-                     {   //super close
-                         pixels[colorIndex + BlueIndex] = 0;
-                         pixels[colorIndex + GreenIndex] = 0;
-                         pixels[colorIndex + RedIndex] = 255;
-                     }
-                 }
-
-             MemoryStream stream = new MemoryStream(pixels);
-   
-                  //   BitmapSource.Create(depthFrame.Width, depthFrame.Height, 96, 96, PixelFormats.Bgr32, null, pixels2, stride2);
-             ImageConverter convert = new ImageConverter();
-            
-             Bitmap bmp = new Bitmap();
-             bmp.
-             return bmp;
-         } */
-
-        Bitmap DepthToBitmap(DepthImageFrame imageFrame)
-        {
-            /*
-            short[] pixelData = new short[imageFrame.PixelDataLength];
-            imageFrame.CopyPixelDataTo(pixelData);
-
-            Bitmap bmap = new Bitmap(
-            imageFrame.Width,
-            imageFrame.Height,
-            PixelFormat.Format16bppRgb555);
-
-            BitmapData bmapdata = bmap.LockBits(
-             new Rectangle(0, 0, imageFrame.Width,
-                                    imageFrame.Height),
-             ImageLockMode.WriteOnly,
-             bmap.PixelFormat);
-            IntPtr ptr = bmapdata.Scan0;
-            Marshal.Copy(pixelData,
-             0,
-             ptr,
-             imageFrame.Width *
-               imageFrame.Height);
-            bmap.UnlockBits(bmapdata);
-            return bmap;
-            */
-            return null;
         }
 
         private void tiltButton_Click(object sender, RoutedEventArgs e)
@@ -356,6 +214,7 @@ namespace KinectTrack
             sensor.ElevationAngle = (int)tiltSlider.Value.Clamp(sensor.MinElevationAngle, sensor.MaxElevationAngle);
         }
 
+        //What?
         private void visBox_ImageFailed(object sender, ExceptionRoutedEventArgs e)
         {
 
