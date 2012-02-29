@@ -1,9 +1,9 @@
 ﻿<Window x:Class="KinectTrack.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="400" Width="1349">
+        Title="MainWindow" Height="635" Width="1349">
     <Grid>
-        <Label Content="Label" Height="28" HorizontalAlignment="Left" Margin="203,261,0,0" Name="DebugLabel" VerticalAlignment="Top" />
+        <Label Content="Label" Height="28" HorizontalAlignment="Left" Margin="664,271,0,0" Name="DebugLabel" VerticalAlignment="Top" />
         <Image Height="240" HorizontalAlignment="Left" Margin="12,12,0,0" Name="visBox" Stretch="Fill" VerticalAlignment="Top" Width="320" ImageFailed="visBox_ImageFailed" />
         <Image Height="240" HorizontalAlignment="Left" Margin="338,12,0,0" Name="depthBox" Stretch="Fill" VerticalAlignment="Top" Width="320" />
         <Image Height="240" HorizontalAlignment="Left" Margin="664,12,0,0" Name="image2" Stretch="Fill" VerticalAlignment="Top" Width="320" />
@@ -11,5 +11,6 @@
         <Button Content="Change Tilt" Height="23" HorizontalAlignment="Left" Margin="1221,205,0,0" Name="tiltButton" VerticalAlignment="Top" Width="75" Click="tiltButton_Click" />
         <Image Height="50" HorizontalAlignment="Left" Name="faceImage" Stretch="Fill" VerticalAlignment="Top" Width="51" Source="/KinectTrack;component/Images/face.png" Margin="12,12,0,0" />
         <CheckBox Content="Display Depth Image?" Height="16" HorizontalAlignment="Left" Margin="351,271,0,0" Name="depthCheckBox" VerticalAlignment="Top" IsChecked="False" Checked="depthCheckBox_Checked" Unchecked="depthCheckBox_Unchecked" />
+        <TextBlock Height="263" HorizontalAlignment="Left" Margin="12,321,0,0" Name="skelInfo" Text="" VerticalAlignment="Top" Width="775" FontWeight="Bold" FontSize="26" Foreground="#FFFA0000"><TextBlock.TextEffects><TextEffect Foreground="#FFFA0000" /></TextBlock.TextEffects></TextBlock>
     </Grid>
 </Window>

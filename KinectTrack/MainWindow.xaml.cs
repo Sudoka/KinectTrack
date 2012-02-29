@@ -68,6 +68,11 @@ namespace KinectTrack
 
         WriteableBitmap colorBmp;
         WriteableBitmap depthBmp;
+        //NOTE: this is a bit hacky, as I have hardcoded the sizes of the frames
+        Int32Rect colorFrameRect = new Int32Rect(0, 0, 640, 480);
+        Int32Rect depthFrameRect = new Int32Rect(0, 0, 320, 240);
+
+        StringBuilder sb = new StringBuilder();
 
         void sensor_AllFramesReady(object sender, AllFramesReadyEventArgs e)
         {
@@ -83,7 +88,7 @@ namespace KinectTrack
                     if(colorBmp == null) {
                        colorBmp = new WriteableBitmap(BitmapSource.Create(colorFrame.Width,colorFrame.Height,96,96, PixelFormats.Bgr32, null, pixels, stride));
                     } else {
-                        colorBmp.WritePixels(new Int32Rect(0, 0, colorFrame.Width, colorFrame.Height), pixels, stride, 0);
+                        colorBmp.WritePixels(colorFrameRect, pixels, stride, 0);
                     }
                     visBox.Source = colorBmp;
                 }
@@ -105,7 +110,7 @@ namespace KinectTrack
                 }
                 else
                 {
-                    depthBmp.WritePixels(new Int32Rect(0, 0, depthFrame.Width, depthFrame.Height), pixels, stride, 0);
+                    depthBmp.WritePixels(depthFrameRect, pixels, stride, 0);
                 }
                 depthBox.Source = depthBmp;
 
@@ -117,13 +122,41 @@ namespace KinectTrack
                 Skeleton firstSkel = getFirstSkeleton(skelFrame);
                 if (firstSkel != null)
                 {
+                    // Print the fun face on the image frame
                     SkelToBitmap(firstSkel, depthFrame);
+                    // Print some basic stats
+                    double ankleToKneeRight = jointDistance(firstSkel.Joints[JointType.AnkleRight], firstSkel.Joints[JointType.KneeRight]); 
+                    double ankleToKneeLeft = jointDistance(firstSkel.Joints[JointType.AnkleLeft], firstSkel.Joints[JointType.KneeLeft]);
+                    /*
+                    sb.Append("Ankle to right knee dist = ");
+                    sb.Append(ankleToKneeRight);
+                    sb.Append("\n Ankle to left knee dist = ");
+                    sb.Append(ankleToKneeLeft);
+                    */
+                    // Stupid .NET uses a different syntax for format strings for no discernable reason
+                    String s = String.Format("Ankle to right knee dist = {0,5:f} \nAnkle to left knee dist = {1,5:f}", ankleToKneeRight, ankleToKneeLeft);
+                    skelInfo.Text = s;
+                    sb.Clear();
                 }
             }
 
             // Dispose of skelFrame and depthFrame
             if (skelFrame != null) skelFrame.Dispose();
             if (depthFrame != null) depthFrame.Dispose();
+        }
+
+        /// <summary>
+        /// Returns the Euclidean distance between joints. Only makes sense when called with adjacent points
+        /// </summary>
+        /// <param name="joint"></param>
+        /// <param name="joint2"></param>
+        /// <returns></returns>
+        private double jointDistance(Joint j, Joint j2)
+        {
+            double x = j.Position.X - j2.Position.X;
+            double y = j.Position.Y - j2.Position.Y;
+            double z = j.Position.Z - j2.Position.Z;
+            return Math.Sqrt(x * x + y * y + z * z);
         }
 
         Skeleton getFirstSkeleton(SkeletonFrame frame)
