@@ -28,7 +28,9 @@ namespace KinectTrack
     {
         KinectSensor sensor;   //our sensor
 
-        private bool drawDepthFrame = false; 
+        private bool drawDepthFrame = false;
+
+        private FixedCapacityList<double> rkneelist;
 
         public MainWindow()
         {
@@ -59,6 +61,8 @@ namespace KinectTrack
                 //declare new event handler
                 sensor.AllFramesReady += new EventHandler<AllFramesReadyEventArgs>(sensor_AllFramesReady);
                 sensor.Start();
+
+                rkneelist = new FixedCapacityList<double>(90);
             }
             catch
             {
@@ -71,8 +75,6 @@ namespace KinectTrack
         //NOTE: this is a bit hacky, as I have hardcoded the sizes of the frames
         Int32Rect colorFrameRect = new Int32Rect(0, 0, 640, 480);
         Int32Rect depthFrameRect = new Int32Rect(0, 0, 320, 240);
-
-        StringBuilder sb = new StringBuilder();
 
         void sensor_AllFramesReady(object sender, AllFramesReadyEventArgs e)
         {
@@ -124,19 +126,22 @@ namespace KinectTrack
                 {
                     // Print the fun face on the image frame
                     SkelToBitmap(firstSkel, depthFrame);
+                    
                     // Print some basic stats
                     double ankleToKneeRight = jointDistance(firstSkel.Joints[JointType.AnkleRight], firstSkel.Joints[JointType.KneeRight]); 
                     double ankleToKneeLeft = jointDistance(firstSkel.Joints[JointType.AnkleLeft], firstSkel.Joints[JointType.KneeLeft]);
-                    /*
-                    sb.Append("Ankle to right knee dist = ");
-                    sb.Append(ankleToKneeRight);
-                    sb.Append("\n Ankle to left knee dist = ");
-                    sb.Append(ankleToKneeLeft);
-                    */
                     // Stupid .NET uses a different syntax for format strings for no discernable reason
-                    String s = String.Format("Ankle to right knee dist = {0,5:f} \nAnkle to left knee dist = {1,5:f}", ankleToKneeRight, ankleToKneeLeft);
-                    skelInfo.Text = s;
-                    sb.Clear();
+                    String s = String.Format("Ankle to right knee dist = {0,5:f} Ankle to left knee dist = {1,5:f} \n", ankleToKneeRight, ankleToKneeLeft);
+
+                    double kneeToHipRight = jointDistance(firstSkel.Joints[JointType.KneeRight], firstSkel.Joints[JointType.HipRight]); 
+                    double kneeToHipLeft = jointDistance(firstSkel.Joints[JointType.KneeLeft], firstSkel.Joints[JointType.HipLeft]);
+                    String s2 = String.Format("Knee to Hip right = {0,5:f} Knee to Hip left = {1,5:f} \n", kneeToHipRight, ankleToKneeLeft);
+
+
+                    rkneelist.addElement(ankleToKneeRight);
+                    string s3 = String.Format("Average of ankle to knee is {0,5:f}", rkneelist.average());
+                    //NOTE: Stringbuilder needed?
+                    skelInfo.Text = s + s2 + s3;
                 }
             }
 
