@@ -74,7 +74,7 @@ namespace KinectTrack
         WriteableBitmap depthBmp;
         //NOTE: this is a bit hacky, as I have hardcoded the sizes of the frames
         Int32Rect colorFrameRect = new Int32Rect(0, 0, 640, 480);
-        Int32Rect depthFrameRect = new Int32Rect(0, 0, 320, 240);
+        Int32Rect depthFrameRect = new Int32Rect(0, 0, 640, 480);
 
         void sensor_AllFramesReady(object sender, AllFramesReadyEventArgs e)
         {
