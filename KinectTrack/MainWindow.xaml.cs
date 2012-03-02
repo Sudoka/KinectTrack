@@ -16,6 +16,7 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Drawing;
+
 //NOTE: Color is aliased here to avoid conflicting with the class of the same name in System.Windows.Media
 using DColor = System.Drawing.Color;
 
@@ -125,7 +126,9 @@ namespace KinectTrack
                 if (firstSkel != null)
                 {
                     // Print the fun face on the image frame
+                    Skeleton skelly2 = normalizeSkel(firstSkel);
                     SkelToBitmap(firstSkel, depthFrame);
+                    SkelToBitmap(skelly2, depthFrame);   //same depth frame optimistically TO DO
                     
                     // Print some basic stats
                     double ankleToKneeRight = jointDistance(firstSkel.Joints[JointType.AnkleRight], firstSkel.Joints[JointType.KneeRight]); 
@@ -246,6 +249,35 @@ namespace KinectTrack
             faceImage.Margin = new Thickness(visLeft + (headColorPoint.X/2) - (faceImage.Width/2), visTop + (headColorPoint.Y/2) - (faceImage.Height /2), 0, 0);
 
         }
+
+        /*
+         * normalizeSkel - normalizes a skeleton such that all points are treated as vectors and normalized as such: each point has its x, y, and z
+         *                  coordinate divided by the length of the vector for that point.  Returns a new skeleton with normalized components.
+         */
+        private Skeleton normalizeSkel(Skeleton skelly){
+            //create new Skeleton
+            Skeleton returney;//= new Skeleton();
+            returney=skelly;
+            JointCollection tempPoints=returney.Joints;
+            //foreach (Joint j in tempPoints)
+            for(int i = 0; i < returney.Joints.Count ; i++)
+            {
+                Joint j = returney.Joints[(JointType)i];
+                double x = j.Position.X;
+                double y = j.Position.Y;
+                double z = j.Position.Z;
+                double magnitude = Math.Sqrt(x * x + y * y + z * z);
+                SkeletonPoint newPos=new SkeletonPoint();
+                newPos.X = (float)(x / magnitude);
+                newPos.Y = (float)(y / magnitude);
+                newPos.Z = (float)(z / magnitude);
+                j.Position = new SkeletonPoint();
+                //returney.Joints[j.JointType].Position.X = x;
+            }
+            return returney;
+        }
+       
+
 
         private void tiltButton_Click(object sender, RoutedEventArgs e)
         {
