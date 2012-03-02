@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Drawing;
+using System.Windows.Media.Media3D;
+using Microsoft.Kinect;
 
 namespace KinectTrack
 {
@@ -38,6 +40,14 @@ namespace KinectTrack
             pixelArray[pixelIndex + BlueIndex] = c.B;
             pixelArray[pixelIndex + GreenIndex] = c.G;
             pixelArray[pixelIndex + RedIndex] = c.R;
+        }
+        public static TranslateTransform3D getJointPosTransform(Joint j, double multiplier)
+        {
+            return new TranslateTransform3D(j.Position.X * multiplier, j.Position.Y * multiplier, j.Position.Z * multiplier);
+        }
+        public static TranslateTransform3D getJointPosTransform(Joint j)
+        {
+            return getJointPosTransform(j, 1);
         }
     }
 }

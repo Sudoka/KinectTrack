@@ -16,8 +16,12 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Drawing;
+using System.Windows.Media.Media3D;
+using Petzold.Media3D;
 //NOTE: Color is aliased here to avoid conflicting with the class of the same name in System.Windows.Media
 using DColor = System.Drawing.Color;
+using WMColor = System.Windows.Media.Color;
+
 
 namespace KinectTrack
 {
@@ -28,9 +32,26 @@ namespace KinectTrack
     {
         KinectSensor sensor;   //our sensor
 
+        // Should the depth frame be drawn
         private bool drawDepthFrame = false;
+        // Should the 3d skeleton frame be drawn
+        private bool draw3dFrame = false;
 
+        //TODO: probably delete this?
         private FixedCapacityList<double> rkneelist;
+
+        // Bitmaps for the color and depth frames 
+        WriteableBitmap colorBmp;
+        WriteableBitmap depthBmp;
+        //NOTE: this is a bit hacky, as I have hardcoded the sizes of the frames in order to lessen GC pauses
+        Int32Rect colorFrameRect = new Int32Rect(0, 0, 640, 480);
+        Int32Rect depthFrameRect = new Int32Rect(0, 0, 640, 480);
+
+        //The skeleton frame that gets written to whenever the skeleton is in the frame
+        List<Skeleton> skelList = new List<Skeleton>();
+
+        // The skelList for use by the 3d display function
+        List<Skeleton> copySkelList;
 
         public MainWindow()
         {
@@ -57,7 +78,7 @@ namespace KinectTrack
                 //enable sensor streams
                 sensor.ColorStream.Enable(ColorImageFormat.RgbResolution640x480Fps30);
                 sensor.DepthStream.Enable(DepthImageFormat.Resolution640x480Fps30);
-                sensor.SkeletonStream.Enable();  //add smoothing parameters?  TO DO
+                sensor.SkeletonStream.Enable();  //TODO: Should we add smoothing params?
                 //declare new event handler
                 sensor.AllFramesReady += new EventHandler<AllFramesReadyEventArgs>(sensor_AllFramesReady);
                 sensor.Start();
@@ -70,18 +91,12 @@ namespace KinectTrack
             }
         }
 
-        WriteableBitmap colorBmp;
-        WriteableBitmap depthBmp;
-        //NOTE: this is a bit hacky, as I have hardcoded the sizes of the frames
-        Int32Rect colorFrameRect = new Int32Rect(0, 0, 640, 480);
-        Int32Rect depthFrameRect = new Int32Rect(0, 0, 640, 480);
-
         void sensor_AllFramesReady(object sender, AllFramesReadyEventArgs e)
         {
             // Handle image frame
             using(ColorImageFrame colorFrame = e.OpenColorImageFrame()) {
                 if(colorFrame != null) {
-                    DebugLabel.Content = "Woot, we got frames!";
+                    //DebugLabel.Content = "Woot, we got frames!";
                     byte[] pixels = new byte[colorFrame.PixelDataLength];
                     colorFrame.CopyPixelDataTo(pixels);
 
@@ -126,7 +141,8 @@ namespace KinectTrack
                 {
                     // Print the fun face on the image frame
                     SkelToBitmap(firstSkel, depthFrame);
-                    
+
+                    skelList.Add(firstSkel);
                     // Print some basic stats
                     double ankleToKneeRight = jointDistance(firstSkel.Joints[JointType.AnkleRight], firstSkel.Joints[JointType.KneeRight]); 
                     double ankleToKneeLeft = jointDistance(firstSkel.Joints[JointType.AnkleLeft], firstSkel.Joints[JointType.KneeLeft]);
@@ -263,10 +279,60 @@ namespace KinectTrack
             drawDepthFrame = !drawDepthFrame;
         }
 
+        private ModelVisual3D getCube()
+        {
+            BoxMesh b = new BoxMesh();
+            Material material = new DiffuseMaterial(
+                new SolidColorBrush(Colors.Red));
+            GeometryModel3D boxModel = new GeometryModel3D(
+                b.Geometry, material);
+            ModelVisual3D model = new ModelVisual3D();
+            model.Content = boxModel;
+
+            return model;
+        }
+
         private void depthCheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
             drawDepthFrame = !drawDepthFrame;
         }
-        
+
+        private void grabSkelList_Click(object sender, RoutedEventArgs e)
+        {
+            //TODO: add null checks and stuff here
+            copySkelList = new List<Skeleton>();
+            copySkelList.AddRange(skelList);
+            
+            // Set up the slider
+            skelSlider.Minimum = 0;
+            skelSlider.Maximum = copySkelList.Count;
+            skelSlider.IsSnapToTickEnabled = true;
+        }
+
+        private void skelSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            // Get the slider frame number
+            int frameNumber = (int)e.NewValue;
+            //Clear the viewport
+            skelViewport.Children.Clear();
+            renderSkeleton(copySkelList[frameNumber.Clamp(0,copySkelList.Count-1)]);
+        }
+
+        private void renderSkeleton(Skeleton renderSkel)
+        {
+            foreach(Joint j in renderSkel.Joints) {
+                // Create a cube for each joint
+                ModelVisual3D curJointCube = getCube();
+                Transform3DGroup tGroup = new Transform3DGroup();
+                // move the joints to the right positions
+                tGroup.Children.Add(Utils.getJointPosTransform(j, 10));
+                // Make the squares smaller
+                tGroup.Children.Add(new ScaleTransform3D(.5, .5, .5));
+                curJointCube.Transform = tGroup;
+                this.skelViewport.Children.Add(curJointCube);
+            }
+            this.skelViewport.Camera = new PerspectiveCamera(new Point3D(0, 0, 0), new Vector3D(renderSkel.Position.X, renderSkel.Position.Y, renderSkel.Position.Z), new Vector3D(0, 1, 0), 75);
+            //this.skelViewport.Children.Add(new DirectionalLight(WMColor.FromRgb(255,255,255), new Vector3D(renderSkel.Position.X, renderSkel.Position.Y, renderSkel.Position.Z)));
+        }
     }
 }
