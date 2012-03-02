@@ -16,8 +16,12 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Drawing;
+<<<<<<< HEAD
+
+=======
 using System.Windows.Media.Media3D;
 using Petzold.Media3D;
+>>>>>>> ec1e8912635715571d9712691c9b22620c583038
 //NOTE: Color is aliased here to avoid conflicting with the class of the same name in System.Windows.Media
 using DColor = System.Drawing.Color;
 using WMColor = System.Windows.Media.Color;
@@ -142,8 +146,13 @@ namespace KinectTrack
                     // Print the fun face on the image frame
                     Skeleton skelly2 = normalizeSkel(firstSkel);
                     SkelToBitmap(firstSkel, depthFrame);
+<<<<<<< HEAD
+                    SkelToBitmap(skelly2, depthFrame);   //same depth frame optimistically TO DO
+                    
+=======
 
                     skelList.Add(firstSkel);
+>>>>>>> ec1e8912635715571d9712691c9b22620c583038
                     // Print some basic stats
                     double ankleToKneeRight = jointDistance(firstSkel.Joints[JointType.AnkleRight], firstSkel.Joints[JointType.KneeRight]); 
                     double ankleToKneeLeft = jointDistance(firstSkel.Joints[JointType.AnkleLeft], firstSkel.Joints[JointType.KneeLeft]);
