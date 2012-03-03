@@ -302,11 +302,19 @@ namespace KinectTrack
             //TODO: add null checks and stuff here
             copySkelList = new List<Skeleton>();
             copySkelList.AddRange(skelList);
-            
+
+            for (int i = 0; i < copySkelList.Count; i++)
+            {
+                DanSkeleton d = new DanSkeleton(copySkelList[i]);
+                d.multiplyJoints(10f);
+                copySkelList[i] = d;
+            }
             // Set up the slider
             skelSlider.Minimum = 0;
             skelSlider.Maximum = copySkelList.Count;
             skelSlider.IsSnapToTickEnabled = true;
+
+            //DanSkeleton s = new DanSkeleton(copySkelList[0]);
         }
 
         private void skelSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -320,6 +328,7 @@ namespace KinectTrack
 
         private void renderSkeleton(Skeleton renderSkel)
         {
+            Model3DGroup skel3dGroup = new Model3DGroup();
             foreach(Joint j in renderSkel.Joints) {
                 // Create a cube for each joint
                 ModelVisual3D curJointCube = getCube();
@@ -329,9 +338,11 @@ namespace KinectTrack
                 // Make the squares smaller
                 tGroup.Children.Add(new ScaleTransform3D(.5, .5, .5));
                 curJointCube.Transform = tGroup;
+                //skel3dGroup.Children.Add(curJointCube);
                 this.skelViewport.Children.Add(curJointCube);
             }
-            this.skelViewport.Camera = new PerspectiveCamera(new Point3D(0, 0, 0), new Vector3D(renderSkel.Position.X, renderSkel.Position.Y, renderSkel.Position.Z), new Vector3D(0, 1, 0), 75);
+            this.skelViewport.Camera = new PerspectiveCamera(new Point3D(0, 0, -3), new Vector3D(renderSkel.Position.X, renderSkel.Position.Y, renderSkel.Position.Z), new Vector3D(0, 1, 0), 75);
+            //this.skelViewport.
             //this.skelViewport.Children.Add(new DirectionalLight(WMColor.FromRgb(255,255,255), new Vector3D(renderSkel.Position.X, renderSkel.Position.Y, renderSkel.Position.Z)));
         }
     }

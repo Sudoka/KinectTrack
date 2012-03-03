@@ -68,7 +68,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Cube.cs" />
+    <Compile Include="DanSkeleton.cs" />
     <Compile Include="FixedCapacityList.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="MainWindow.xaml.cs">

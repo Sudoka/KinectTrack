@@ -5,6 +5,8 @@ using System.Text;
 using System.Drawing;
 using System.Windows.Media.Media3D;
 using Microsoft.Kinect;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace KinectTrack
 {
@@ -41,6 +43,19 @@ namespace KinectTrack
             pixelArray[pixelIndex + GreenIndex] = c.G;
             pixelArray[pixelIndex + RedIndex] = c.R;
         }
+        // Deep clone
+        // If it's marked [Serializable], you can clone it!
+        public static T DeepClone<T>(this T a)
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                BinaryFormatter formatter = new BinaryFormatter();
+                formatter.Serialize(stream, a);
+                stream.Position = 0;
+                return (T)formatter.Deserialize(stream);
+            }
+        }
+
         public static TranslateTransform3D getJointPosTransform(Joint j, double multiplier)
         {
             return new TranslateTransform3D(j.Position.X * multiplier, j.Position.Y * multiplier, j.Position.Z * multiplier);
