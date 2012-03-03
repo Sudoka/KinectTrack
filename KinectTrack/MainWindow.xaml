@@ -30,5 +30,6 @@
         </Viewport3D>
         <Button Content="Grab Skeleton List" Height="23" HorizontalAlignment="Left" Margin="664,292,0,0" Name="button3d" VerticalAlignment="Top" Width="123" Click="grabSkelList_Click" />
         <Slider Height="27" HorizontalAlignment="Left" Margin="664,257,0,0" Name="skelSlider" VerticalAlignment="Top" Width="320" ValueChanged="skelSlider_ValueChanged" />
+        <TextBox Height="171" HorizontalAlignment="Left" Margin="793,321,0,0" Name="DEBUG" VerticalAlignment="Top" Width="240" TextChanged="DEBUG_TextChanged" />
     </Grid>
 </Window>

@@ -36,9 +36,11 @@ namespace KinectTrack
         private bool drawDepthFrame = false;
         // Should the 3d skeleton frame be drawn
         private bool draw3dFrame = false;
+        //Should we want to pring debug statements
+        private bool debugging = true;
 
         //TODO: probably delete this?
-        private FixedCapacityList<double> rkneelist;
+        private FixedCapacityList<double> rkneelist;  //???  WHAT IS this for?
 
         // Bitmaps for the color and depth frames 
         WriteableBitmap colorBmp;
@@ -52,6 +54,9 @@ namespace KinectTrack
 
         // The skelList for use by the 3d display function
         List<Skeleton> copySkelList;
+
+        // The skelList for testing normalized skeletons
+        List<Skeleton> normSkelList = new List<Skeleton>();
 
         public MainWindow()
         {
@@ -83,7 +88,7 @@ namespace KinectTrack
                 sensor.AllFramesReady += new EventHandler<AllFramesReadyEventArgs>(sensor_AllFramesReady);
                 sensor.Start();
 
-                rkneelist = new FixedCapacityList<double>(90);
+                rkneelist = new FixedCapacityList<double>(90);  //TODO: ??? 
             }
             catch
             {
@@ -91,11 +96,17 @@ namespace KinectTrack
             }
         }
 
+        /*
+         * sensor_AllFramesReady() - event handler for when the kinect is ready to send us frames
+         */
+
         void sensor_AllFramesReady(object sender, AllFramesReadyEventArgs e)
         {
             // Handle image frame
-            using(ColorImageFrame colorFrame = e.OpenColorImageFrame()) {
-                if(colorFrame != null) {
+            using(ColorImageFrame colorFrame = e.OpenColorImageFrame()) 
+            {
+                if(colorFrame != null) 
+                {
                     //DebugLabel.Content = "Woot, we got frames!";
                     byte[] pixels = new byte[colorFrame.PixelDataLength];
                     colorFrame.CopyPixelDataTo(pixels);
@@ -115,6 +126,7 @@ namespace KinectTrack
             SkeletonFrame skelFrame = e.OpenSkeletonFrame();
 
             //NOTE: Ideally, these would be in using blocks, but that fact that skelToBitmap needs the depthframe complicates things
+            //TODO: (to NOTE above - what about nested Using statements?) http://stackoverflow.com/questions/1329739/nested-using-statements-in-c-sharp
             if (depthFrame != null && drawDepthFrame)
             {
                 byte[] pixels = generateColorPixels(depthFrame);
@@ -140,10 +152,12 @@ namespace KinectTrack
                 if (firstSkel != null)
                 {
                     // Print the fun face on the image frame
-                    Skeleton skelly2 = normalizeSkel(firstSkel);
-                    SkelToBitmap(firstSkel, depthFrame);
-
+                    Skeleton normSkel = normalizeSkel(firstSkel);
+                    //SkelToBitmap(firstSkel, depthFrame);
+                    SkelToBitmap(normSkel, depthFrame);   //seeing if we get the normalized skeleton
                     skelList.Add(firstSkel);
+                    normSkelList.Add(normSkel);  //parallel list of normalized skeletons (smaller)
+
                     // Print some basic stats
                     double ankleToKneeRight = jointDistance(firstSkel.Joints[JointType.AnkleRight], firstSkel.Joints[JointType.KneeRight]); 
                     double ankleToKneeLeft = jointDistance(firstSkel.Joints[JointType.AnkleLeft], firstSkel.Joints[JointType.KneeLeft]);
@@ -183,9 +197,9 @@ namespace KinectTrack
 
         Skeleton getFirstSkeleton(SkeletonFrame frame)
         {
-            Skeleton[] skelArray = new Skeleton[frame.SkeletonArrayLength];
-            frame.CopySkeletonDataTo(skelArray);
-            Skeleton first = (from s in skelArray where s.TrackingState == SkeletonTrackingState.Tracked select s).FirstOrDefault();
+            Skeleton[] closet = new Skeleton[frame.SkeletonArrayLength];
+            frame.CopySkeletonDataTo(closet);
+            Skeleton first = (from s in closet where s.TrackingState == SkeletonTrackingState.Tracked select s).FirstOrDefault();  //nifty
             return first;
         }
 
@@ -270,10 +284,12 @@ namespace KinectTrack
          */
         private Skeleton normalizeSkel(Skeleton skelly){
             //create new Skeleton
-            Skeleton returney;//= new Skeleton();
-            returney=skelly;
-            JointCollection tempPoints=returney.Joints;
-            //foreach (Joint j in tempPoints)
+            Skeleton returney = skelly;
+            JointCollection newCollection = new JointCollection();  //grr argh grr
+            if (debugging == true)
+            {
+                System.Console.Write("Value of original head point X:\t" + returney.Joints[JointType.Head].Position.X + "\n");
+            }
             for(int i = 0; i < returney.Joints.Count ; i++)
             {
                 Joint j = returney.Joints[(JointType)i];
@@ -285,8 +301,14 @@ namespace KinectTrack
                 newPos.X = (float)(x / magnitude);
                 newPos.Y = (float)(y / magnitude);
                 newPos.Z = (float)(z / magnitude);
-                j.Position = new SkeletonPoint();
-                //returney.Joints[j.JointType].Position.X = x;
+                j.Position = newPos;
+               // newCollection.Add(j);
+            }
+            returney.Joints = newCollection;
+            //TODO:  Debug text
+            if (debugging == true)
+            {
+                System.Console.Write("Value of New head point X:\t" + returney.Joints[JointType.Head].Position.X + "\n");
             }
             return returney;
         }
@@ -363,6 +385,11 @@ namespace KinectTrack
             }
             this.skelViewport.Camera = new PerspectiveCamera(new Point3D(0, 0, 0), new Vector3D(renderSkel.Position.X, renderSkel.Position.Y, renderSkel.Position.Z), new Vector3D(0, 1, 0), 75);
             //this.skelViewport.Children.Add(new DirectionalLight(WMColor.FromRgb(255,255,255), new Vector3D(renderSkel.Position.X, renderSkel.Position.Y, renderSkel.Position.Z)));
+        }
+
+        private void DEBUG_TextChanged(object sender, TextChangedEventArgs e)
+        {
+
         }
     }
 }
