@@ -304,7 +304,7 @@ namespace KinectTrack
                 j.Position = newPos;
                // newCollection.Add(j);
             }
-            returney.Joints = newCollection;
+            returney.Joints = newCollection;  //TODO: fix this stuff
             //TODO:  Debug text
             if (debugging == true)
             {
