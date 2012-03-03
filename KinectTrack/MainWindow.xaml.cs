@@ -153,10 +153,10 @@ namespace KinectTrack
                 {
                     // Print the fun face on the image frame
                     Skeleton normSkel = normalizeSkel(firstSkel);
-                    //SkelToBitmap(firstSkel, depthFrame);
-                    SkelToBitmap(normSkel, depthFrame);   //seeing if we get the normalized skeleton
+                    SkelToBitmap(firstSkel, depthFrame);
+                    //SkelToBitmap(normSkel, depthFrame);   //seeing if we get the normalized skeleton
                     skelList.Add(firstSkel);
-                    normSkelList.Add(normSkel);  //parallel list of normalized skeletons (smaller)
+                    //normSkelList.Add(normSkel);  //parallel list of normalized skeletons (smaller)
 
                     // Print some basic stats
                     double ankleToKneeRight = jointDistance(firstSkel.Joints[JointType.AnkleRight], firstSkel.Joints[JointType.KneeRight]); 
@@ -283,6 +283,7 @@ namespace KinectTrack
          *                  coordinate divided by the length of the vector for that point.  Returns a new skeleton with normalized components.
          */
         private Skeleton normalizeSkel(Skeleton skelly){
+            /*
             //create new Skeleton
             Skeleton returney = skelly;
             JointCollection newCollection = new JointCollection();  //grr argh grr
@@ -311,6 +312,8 @@ namespace KinectTrack
                 System.Console.Write("Value of New head point X:\t" + returney.Joints[JointType.Head].Position.X + "\n");
             }
             return returney;
+            */
+            return null;
         }
        
 
