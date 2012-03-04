@@ -116,25 +116,31 @@ namespace KinectTrack
             // 
             // Paul misses C++ sometimes
             Joint[] ja = new Joint[20];
+            SkeletonPoint newPosition;
             for (int i = 0; i < this.Joints.Count; i++)
             {
                 // Clone the joint
                 Joint j = this.Joints[(JointType)i].DeepClone();
                 // Create a new position for that joint
-                SkeletonPoint newPosition = new SkeletonPoint();
+                newPosition = new SkeletonPoint();
                 // Set the position values
-                newPosition.X = j.Position.X + xAmount;
-                newPosition.Y = j.Position.Y + yAmount;
-                newPosition.Z = j.Position.Z + zAmount;
+                newPosition.X = j.Position.X - xAmount;
+                newPosition.Y = j.Position.Y - yAmount;
+                newPosition.Z = j.Position.Z - zAmount;
                 // And set the position for the joint to be the right thing
                 j.Position = newPosition;
                 // Put it in the new joint array
                 ja[i] = j;
             }
+            newPosition = new SkeletonPoint();
+            newPosition.X = this.Position.X - xAmount;
+            newPosition.Y = this.Position.Y - yAmount;
+            newPosition.Z = this.Position.Z - zAmount;
             // NOTE: Ideally, we could just do something like this.Joints[curJoint].Position = blah
             // But the JointCollection class doesn't want to let us. So we have to force it with Reflection
             // I've done some testing and this seems not to break anything, but I'm sure the performance isn't great
             typeof(JointCollection).GetField("_skeletonData", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(this.Joints, ja);
+            this.Position = newPosition;
         }
         //TODO: write other useful functions here (scaling, etc...)
     }

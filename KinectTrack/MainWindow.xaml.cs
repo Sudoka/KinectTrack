@@ -37,7 +37,7 @@ namespace KinectTrack
         // Should the 3d skeleton frame be drawn
         private bool draw3dFrame = false;
         //Should we want to pring debug statements
-        private bool debugging = false;
+        private bool debugging = true;
 
         //TODO: probably delete this?
         private FixedCapacityList<double> rkneelist;  //???  WHAT IS this for?
@@ -153,8 +153,14 @@ namespace KinectTrack
                 {
                     // Print the fun face on the image frame
                     Skeleton normSkel = normalizeSkel(firstSkel);
+                    //testing for point indices  TODO:  not working on display, delete this
+                    SkeletonPoint p = new SkeletonPoint();
+                    p.X = .25F;
+                    p.Y = .25F;
+                    p.Z = .25F;
+                    Skeleton sSkel = shiftSkel(normSkel, p);
                     //SkelToBitmap(firstSkel, depthFrame);
-                    SkelToBitmap(normSkel, depthFrame);   //seeing if we get the normalized skeleton
+                    SkelToBitmap(sSkel, depthFrame);   //seeing if we get the normalized skeleton
                     skelList.Add(firstSkel);
                     normSkelList.Add(normSkel);  //parallel list of normalized skeletons (smaller)
 
@@ -305,8 +311,14 @@ namespace KinectTrack
          *   SkeletonPoint newCenter - the new point around which to center the skeleton 
          *   Skeleton skelly - the skeleton to shift
          */
-        private Skeleton shiftSkel(SkeletonPoint newCenter, Skeleton skelly)
+        private Skeleton shiftSkel(Skeleton skelly, SkeletonPoint newCenter)
         {
+
+            if (debugging == true)
+            {
+                System.Console.Write("Value of head.x before shift\t" + skelly.Joints[JointType.Head].Position.X + "\n");
+                System.Console.Write("Value of Skel.Position before shift\t" + skelly.Position.X + "\n");
+            }
             //figure out the values by which to shift
             //based on ORIGINAL SKELETON POS - NEW SKELETON POS 
             float xAmount, yAmount, zAmount;
@@ -316,6 +328,11 @@ namespace KinectTrack
             //shift it
             DanSkeleton newSkelly = new DanSkeleton(skelly);
             newSkelly.shift(xAmount, yAmount, zAmount);
+            if (debugging == true)
+            {
+                System.Console.Write("Value of head.x after shift\t" + newSkelly.Joints[JointType.Head].Position.X + "\n");
+                System.Console.Write("Value of Skel.Position after shift\t" + newSkelly.Position.X + "\n");
+            }
             return newSkelly;   //polymorphism boosh!
         }
        
