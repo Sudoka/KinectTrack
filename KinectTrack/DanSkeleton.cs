@@ -12,6 +12,8 @@ namespace KinectTrack
     /// </summary>
     class DanSkeleton : Skeleton
     {
+        public bool isStepSkel = false;
+
         // Copy a normal skeleton into a DanSkeleton
         public DanSkeleton(Skeleton s)
             : base()

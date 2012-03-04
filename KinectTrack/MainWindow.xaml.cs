@@ -53,7 +53,7 @@ namespace KinectTrack
         List<Skeleton> skelList = new List<Skeleton>();
 
         // The skelList for use by the 3d display function
-        List<Skeleton> copySkelList;
+        List<DanSkeleton> copySkelList;
 
         // The skelList for testing normalized skeletons
         List<Skeleton> normSkelList = new List<Skeleton>();
@@ -334,19 +334,6 @@ namespace KinectTrack
             drawDepthFrame = !drawDepthFrame;
         }
 
-        private ModelVisual3D getCube()
-        {
-            BoxMesh b = new BoxMesh();
-            Material material = new DiffuseMaterial(
-                new SolidColorBrush(Colors.Red));
-            GeometryModel3D boxModel = new GeometryModel3D(
-                b.Geometry, material);
-            ModelVisual3D model = new ModelVisual3D();
-            model.Content = boxModel;
-
-            return model;
-        }
-
         private void depthCheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
             drawDepthFrame = !drawDepthFrame;
@@ -355,21 +342,63 @@ namespace KinectTrack
         private void grabSkelList_Click(object sender, RoutedEventArgs e)
         {
             //TODO: add null checks and stuff here
-            copySkelList = new List<Skeleton>();
-            copySkelList.AddRange(skelList);
+            copySkelList = new List<DanSkeleton>();
+            //copySkelList.AddRange(skelList);
 
-            for (int i = 0; i < copySkelList.Count; i++)
+//            for (int i = 0; i < copySkelList.Count; i++)
+            foreach(Skeleton s in skelList) 
             {
-                DanSkeleton d = new DanSkeleton(copySkelList[i]);
-                d.multiplyJoints(10f);
-                copySkelList[i] = d;
+                DanSkeleton d = new DanSkeleton(s);
+                //d.multiplyJoints(10f);
+                copySkelList.Add(d);
             }
             // Set up the slider
             skelSlider.Minimum = 0;
             skelSlider.Maximum = copySkelList.Count;
             skelSlider.IsSnapToTickEnabled = true;
 
-            //DanSkeleton s = new DanSkeleton(copySkelList[0]);
+            // Find step locations
+            List<double> leftFootPosDiffs = new List<double>();
+            // Get distance between all left foot positions
+            for(int skelIndex = 0; skelIndex < copySkelList.Count - 1; skelIndex++) {
+                Skeleton curSkel = copySkelList[skelIndex];
+                Skeleton nextSkel = copySkelList[skelIndex + 1];
+                double curDist = Utils3D.skelPointDist(curSkel.Joints[JointType.FootLeft].Position
+                    ,nextSkel.Joints[JointType.FootLeft].Position);
+                leftFootPosDiffs.Add(curDist);
+            }
+            //NOTE: this is only a guess at a good value for epsilon
+            double epsilon = .01;
+
+            // Find all step diffs smaller than epsilon (i.e. those likely to be points where the foot is down)
+            List<int> stepFrames = new List<int>();
+            for (int i = 0; i < leftFootPosDiffs.Count; i++)
+            {
+                double curDiff = leftFootPosDiffs[i];
+                if (curDiff < epsilon)
+                {
+                    stepFrames.Add(i);
+                }
+            }
+
+            //Coalesce the stepframes into single frames and ignore outliers (i.e. there must be more than one in a row
+            // for it to be a valid foot down position)
+            List<int> realStepFrames = new List<int>();
+            for (int i = 0; i < stepFrames.Count; i++)
+            {
+                int iStart = i;
+                while (i < stepFrames.Count-1 && stepFrames[i + 1] == (stepFrames[i] + 1))
+                {
+                    i++;
+                }
+                if (Math.Abs(i - iStart) > 1) realStepFrames.Add(iStart);
+            }
+            
+            // Set those skeletons as step skeletons
+            foreach (int frameNumber in realStepFrames)
+            {
+                copySkelList[frameNumber].isStepSkel = true;
+            }
         }
 
         private void skelSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -381,24 +410,33 @@ namespace KinectTrack
             renderSkeleton(copySkelList[frameNumber.Clamp(0,copySkelList.Count-1)]);
         }
 
-        private void renderSkeleton(Skeleton renderSkel)
+        private void renderSkeleton(DanSkeleton renderSkel)
         {
             Model3DGroup skel3dGroup = new Model3DGroup();
             foreach(Joint j in renderSkel.Joints) {
                 // Create a cube for each joint
-                ModelVisual3D curJointCube = getCube();
+                ModelVisual3D curJointCube;
+                if (renderSkel.isStepSkel)
+                {
+                    curJointCube = Utils3D.getCube(Colors.Blue);
+                }
+                else
+                {
+                    curJointCube = Utils3D.getCube(Colors.Red);
+                }
                 Transform3DGroup tGroup = new Transform3DGroup();
                 // move the joints to the right positions
-                tGroup.Children.Add(Utils.getJointPosTransform(j, 10));
+                tGroup.Children.Add(Utils3D.getJointPosTransform(j, 10));
                 // Make the squares smaller
                 tGroup.Children.Add(new ScaleTransform3D(.5, .5, .5));
                 curJointCube.Transform = tGroup;
-                //skel3dGroup.Children.Add(curJointCube);
                 this.skelViewport.Children.Add(curJointCube);
             }
+            // Put the camera in the position of the kinect (more or less)
             this.skelViewport.Camera = new PerspectiveCamera(new Point3D(0, 0, -3), new Vector3D(renderSkel.Position.X, renderSkel.Position.Y, renderSkel.Position.Z), new Vector3D(0, 1, 0), 75);
-            //this.skelViewport.
-            //this.skelViewport.Children.Add(new DirectionalLight(WMColor.FromRgb(255,255,255), new Vector3D(renderSkel.Position.X, renderSkel.Position.Y, renderSkel.Position.Z)));
+            // Add a light so that colors are visible
+            this.skelViewport.Children.Add(new ModelVisual3D() { Content = new AmbientLight(Colors.White) });
+
         }
 
         private void DEBUG_TextChanged(object sender, TextChangedEventArgs e)
