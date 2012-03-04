@@ -37,7 +37,7 @@ namespace KinectTrack
         // Should the 3d skeleton frame be drawn
         private bool draw3dFrame = false;
         //Should we want to pring debug statements
-        private bool debugging = true;
+        private bool debugging = false;
 
         //TODO: probably delete this?
         private FixedCapacityList<double> rkneelist;  //???  WHAT IS this for?
@@ -153,10 +153,10 @@ namespace KinectTrack
                 {
                     // Print the fun face on the image frame
                     Skeleton normSkel = normalizeSkel(firstSkel);
-                    SkelToBitmap(firstSkel, depthFrame);
-                    //SkelToBitmap(normSkel, depthFrame);   //seeing if we get the normalized skeleton
+                    //SkelToBitmap(firstSkel, depthFrame);
+                    SkelToBitmap(normSkel, depthFrame);   //seeing if we get the normalized skeleton
                     skelList.Add(firstSkel);
-                    //normSkelList.Add(normSkel);  //parallel list of normalized skeletons (smaller)
+                    normSkelList.Add(normSkel);  //parallel list of normalized skeletons (smaller)
 
                     // Print some basic stats
                     double ankleToKneeRight = jointDistance(firstSkel.Joints[JointType.AnkleRight], firstSkel.Joints[JointType.KneeRight]); 
@@ -283,37 +283,40 @@ namespace KinectTrack
          *                  coordinate divided by the length of the vector for that point.  Returns a new skeleton with normalized components.
          */
         private Skeleton normalizeSkel(Skeleton skelly){
-            /*
-            //create new Skeleton
-            Skeleton returney = skelly;
-            JointCollection newCollection = new JointCollection();  //grr argh grr
             if (debugging == true)
             {
-                System.Console.Write("Value of original head point X:\t" + returney.Joints[JointType.Head].Position.X + "\n");
+                System.Console.Write("Value of head.x before normalization\t" + skelly.Joints[JointType.Head].Position.X + "\n");
+                System.Console.Write("Value of Skel.Position before normalization\t" + skelly.Position.X + "\n");
             }
-            for(int i = 0; i < returney.Joints.Count ; i++)
-            {
-                Joint j = returney.Joints[(JointType)i];
-                double x = j.Position.X;
-                double y = j.Position.Y;
-                double z = j.Position.Z;
-                double magnitude = Math.Sqrt(x * x + y * y + z * z);
-                SkeletonPoint newPos=new SkeletonPoint();
-                newPos.X = (float)(x / magnitude);
-                newPos.Y = (float)(y / magnitude);
-                newPos.Z = (float)(z / magnitude);
-                j.Position = newPos;
-               // newCollection.Add(j);
-            }
-            returney.Joints = newCollection;  //TODO: fix this stuff
-            //TODO:  Debug text
+            DanSkeleton newSkelly = new DanSkeleton(skelly);
+            newSkelly.normalize();
             if (debugging == true)
             {
-                System.Console.Write("Value of New head point X:\t" + returney.Joints[JointType.Head].Position.X + "\n");
+                System.Console.Write("Value of head.x after normalization\t" + newSkelly.Joints[JointType.Head].Position.X + "\n");
+                System.Console.Write("Value of Skel.Position after normalization\t" + newSkelly.Position.X + "\n");
             }
-            return returney;
-            */
-            return null;
+            return newSkelly;   //polymorphism boosh!
+        }
+
+
+        /*
+         * shiftSkel-  shifts skeleton from its position to this new position
+         * param:
+         *   SkeletonPoint newCenter - the new point around which to center the skeleton 
+         *   Skeleton skelly - the skeleton to shift
+         */
+        private Skeleton shiftSkel(SkeletonPoint newCenter, Skeleton skelly)
+        {
+            //figure out the values by which to shift
+            //based on ORIGINAL SKELETON POS - NEW SKELETON POS 
+            float xAmount, yAmount, zAmount;
+            xAmount = skelly.Position.X - newCenter.X;
+            yAmount = skelly.Position.Y - newCenter.Y;
+            zAmount = skelly.Position.Z - newCenter.Z;
+            //shift it
+            DanSkeleton newSkelly = new DanSkeleton(skelly);
+            newSkelly.shift(xAmount, yAmount, zAmount);
+            return newSkelly;   //polymorphism boosh!
         }
        
 
