@@ -14,6 +14,10 @@ namespace KinectTrack
         Stride(List<Skeleton> rawSkeletonList)
         {
             //TODO: transform this into DanSkeletons ....use other methods to make it into a "Stride" 
+            //take rawSkeleton list and transform to DanSkeletons - save as CapturedFrames
+            //rotateSkelList capturedFrames so that it is aligned with x-axis direction of movement
+            //use foot crossing function to determine actual stride start and end (save as firstFrame and lastFrame)
+            //now with a "Stride," calculate descriptive values and store as local vars
         }
 
         public DanSkeleton<List> convertToDanFromSkel(List<Skeleton> rawSkeletonList){
