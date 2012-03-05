@@ -11,6 +11,12 @@ namespace KinectTrack
         private List<DanSkeleton> capturedFrames;
         private int firstFrame;  //first frame of stride as determined by alg
         private int lastFrame;  //last frame of "stride" as determiend by alg
+        private double[] jointStandardDeviations = new double[20];  //20 joints same for below
+        private double[] jointAvg = new double[20];
+        private double[] jointDistStandardDeviations = new double[20];  //TODO: also not 20
+        private double[] jointDistAvg = new double[20];  //TODO: also not 20
+        private double[] anglesStandardDeviations = new double[20];  //TODO: it's not 20
+        private double[] anglesAvg = new double[20];  //TODO: not 20, stupid
         Stride(List<Skeleton> rawSkeletonList)
         {
             //TODO: transform this into DanSkeletons ....use other methods to make it into a "Stride" 
@@ -48,22 +54,44 @@ namespace KinectTrack
         //percent of cycle in swing v. stance mode
 
         //strideLength in distance
+        //strideLenght in time (number of frames)
+        //velocity (combination of distance + frames)  note: learning alg should 
+        //          be able to determine this implicitly, but the more info we give it the better  (can use to guess age!)
+        //step length (should be strideLength/2 but could calculate for right and left to see if there is a difference
+        //step length vs leg length (pg 43)
+        //step width pg 41 (distance between feet between touchdown points)
+        //foot separation (max and min)
+        
+        //arm motion/arc
+
+        //averages and standard deviations of all point positions
+        //averages and standard deviations of all distances between points
+        //averages and standard deviations of all angles between lines between points
+
+
+        //max height off of ground (probably just max head height)
+        //min height from ground (prob just min head height)
+
 
         //pelvic functions
-          //side to side
-          //up and down
-
-        //limb lengths
-          //right arm
-          //left arm
-          //right leg
-          //left leg
-          //etc  ...
+          //pelvic rotation pg 4
+          //pelvic list  pg 4p
        
+        //knee flexion?? pg 4 (might not be able to measure this)
+
+        //other rotations
+          //rotations of thorax and shoulders
+          //rotations of thigh and leg
+          //rotations in the ankle and foot
          
         //foot angle
         
-        //max elevation
+        //max foot elevation
+        //lateral displacement of body pg 9
+            //increased with feet farther apart, decreased closer together
+
+
+        //center of mass measurements? see pg 3 
         
         //"straightness"
 
