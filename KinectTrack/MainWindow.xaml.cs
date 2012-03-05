@@ -37,7 +37,7 @@ namespace KinectTrack
         // Should the 3d skeleton frame be drawn
         private bool draw3dFrame = false;
         //Should we want to pring debug statements
-        private bool debugging = true;
+        private bool debugging = false;
 
         //TODO: probably delete this?
         private FixedCapacityList<double> rkneelist;  //???  WHAT IS this for?
@@ -158,9 +158,9 @@ namespace KinectTrack
                     p.X = .25F;
                     p.Y = .25F;
                     p.Z = .25F;
-                    Skeleton sSkel = shiftSkel(normSkel, p);
-                    //SkelToBitmap(firstSkel, depthFrame);
-                    SkelToBitmap(sSkel, depthFrame);   //seeing if we get the normalized skeleton
+                    //Skeleton sSkel = shiftSkel(normSkel, p);
+                    SkelToBitmap(firstSkel, depthFrame);
+                    //SkelToBitmap(sSkel, depthFrame);   //seeing if we get the normalized skeleton
                     skelList.Add(firstSkel);
                     normSkelList.Add(normSkel);  //parallel list of normalized skeletons (smaller)
 
@@ -361,6 +361,7 @@ namespace KinectTrack
 
         private void grabSkelList_Click(object sender, RoutedEventArgs e)
         {
+            Stride test = new Stride(skelList);
             //TODO: add null checks and stuff here
             copySkelList = new List<DanSkeleton>();
 

@@ -144,6 +144,55 @@ namespace KinectTrack
             typeof(JointCollection).GetField("_skeletonData", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(this.Joints, ja);
             this.Position = newPosition;
         }
+
+        private void setJointCollection(Joint[] jointData)
+        {
+            // NOTE: Ideally, we could just do something like this.Joints[curJoint].Position = blah
+            // But the JointCollection class doesn't want to let us. So we have to force it with Reflection
+            // I've done some testing and this seems not to break anything, but I'm sure the performance isn't great
+            typeof(JointCollection).GetField("_skeletonData", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(this.Joints, jointData);
+        }
+
+        private Joint[] getJointsCopy()
+        {
+            Joint[] jc = new Joint[20];
+            for (int i = 0; i < this.Joints.Count; i++)
+            {
+                // Clone the joint
+                Joint j = this.Joints[(JointType)i].DeepClone();
+                // Put it in the new joint array
+                jc[i] = j;
+            }
+            return jc;
+        }
+
+        public void rotateJointsXZ(double xCenter, double zCenter, double angle)
+        {
+            Joint[] rotatedJoints = getJointsCopy();
+            for(int i = 0; i < rotatedJoints.Length; i++)
+            {
+                Joint curJoint = rotatedJoints[i];
+                double cX = curJoint.Position.X - xCenter;
+                // Z = Y!
+                double cZ = curJoint.Position.Z - zCenter;
+                // The radius of the polar coordinate for this point
+                double r = Math.Sqrt((cX * cX) + (cZ * cZ));
+                // The angle of the current point
+                double a = Math.Atan(cZ / cX);
+
+                // Add teh new angle 
+                double newA = a + angle;
+
+                // translate back to the original points and convert to cartesian coordinates
+                double newX = r*Math.Cos(newA) + xCenter;
+                double newZ = r*Math.Sin(newA) + zCenter;
+                SkeletonPoint rotPos = new SkeletonPoint();
+                rotPos.Y = curJoint.Position.Y;
+                rotPos.X = (float)newX;
+                rotPos.Z = (float)newZ;
+                curJoint.Position = rotPos;
+            }
+        }
         //TODO: write other useful functions here (scaling, etc...)
     }
 }
