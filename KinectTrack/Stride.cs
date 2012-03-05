@@ -9,8 +9,8 @@ namespace KinectTrack
     class Stride
     {
         private List<DanSkeleton> capturedFrames;
-        private firstFrame;  //first frame of stride as determined by alg
-        private lastFrame;  //last frame of "stride" as determiend by alg
+        private int firstFrame;  //first frame of stride as determined by alg
+        private int lastFrame;  //last frame of "stride" as determiend by alg
         Stride(List<Skeleton> rawSkeletonList)
         {
             //TODO: transform this into DanSkeletons ....use other methods to make it into a "Stride" 
@@ -20,7 +20,7 @@ namespace KinectTrack
             //now with a "Stride," calculate descriptive values and store as local vars
         }
 
-        public DanSkeleton<List> convertToDanFromSkel(List<Skeleton> rawSkeletonList){
+        public List<DanSkeleton> convertToDanFromSkel(List<Skeleton> rawSkeletonList){
             //TODO:  take input list of Skeletons and convert to DanSkelton List
             return null;
         }
