@@ -70,6 +70,7 @@
     </Compile>
     <Compile Include="DanSkeleton.cs" />
     <Compile Include="FixedCapacityList.cs" />
+    <Compile Include="Stride.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
