@@ -343,13 +343,10 @@ namespace KinectTrack
         {
             //TODO: add null checks and stuff here
             copySkelList = new List<DanSkeleton>();
-            //copySkelList.AddRange(skelList);
 
-//            for (int i = 0; i < copySkelList.Count; i++)
             foreach(Skeleton s in skelList) 
             {
                 DanSkeleton d = new DanSkeleton(s);
-                //d.multiplyJoints(10f);
                 copySkelList.Add(d);
             }
             // Set up the slider
