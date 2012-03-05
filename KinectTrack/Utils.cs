@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Drawing;
-using System.Windows.Media.Media3D;
+
 using Microsoft.Kinect;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -56,13 +56,5 @@ namespace KinectTrack
             }
         }
 
-        public static TranslateTransform3D getJointPosTransform(Joint j, double multiplier)
-        {
-            return new TranslateTransform3D(j.Position.X * multiplier, j.Position.Y * multiplier, j.Position.Z * multiplier);
-        }
-        public static TranslateTransform3D getJointPosTransform(Joint j)
-        {
-            return getJointPosTransform(j, 1);
-        }
     }
 }
