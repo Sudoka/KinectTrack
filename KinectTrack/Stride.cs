@@ -11,8 +11,8 @@ namespace KinectTrack
 {
     class Stride
     {
-        private List<DanSkeleton> capturedFrames;
-        private List<DanSkeleton> rotatedFrames;
+        public List<DanSkeleton> capturedFrames; //TODO: make private again
+        public List<DanSkeleton> rotatedFrames;  //TODO: make private again
 
         private int firstFrame;  //first frame of stride as determined by alg
         private int lastFrame;  //last frame of "stride" as determiend by alg
