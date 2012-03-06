@@ -56,5 +56,9 @@ namespace KinectTrack
             }
         }
 
+        public static double radiansToDegrees(double rads)
+        {
+            return rads * (180 / Math.PI);
+        }
     }
 }

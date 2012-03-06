@@ -64,11 +64,11 @@ namespace KinectTrack
 
             double angle = Vector.AngleBetween(angleVector, idealVector);
 
-            foreach (DanSkeleton ds in skelList)
+            //foreach (DanSkeleton ds in skelList)
+            for(int i = 0; i < skelList.Count; i++)
             {
-                MessageBox.Show(ds.Joints[JointType.FootRight].Position.X);
+                DanSkeleton ds = skelList[i];
                 ds.rotateJointsXZ(startPos.X, startPos.Z, angle);
-                MessageBox.Show(ds.Joints[JointType.FootRight].Position.X);
             }
             //use first and last frames to determine movement direction
             //rotate entire skeleton to act as though movign along x-axis
@@ -190,12 +190,14 @@ namespace KinectTrack
                 curJointCube.Transform = tGroup;
                 skelViewport.Children.Add(curJointCube);
             }
-            // Put the camera in the position of the kinect (more or less)
-            skelViewport.Camera = new PerspectiveCamera(new Point3D(0, 0, -3), new Vector3D(renderSkel.Position.X, renderSkel.Position.Y, renderSkel.Position.Z), new Vector3D(0, 1, 0), 75);
+            // Put the camera in the position of the kinect (more or less) and have it look in the positive z direction
+            skelViewport.Camera = new PerspectiveCamera(new Point3D(0, 0, -3), new Vector3D(0,0,1), new Vector3D(0, 1, 0), 75);
             // Add a light so that colors are visible
             skelViewport.Children.Add(new ModelVisual3D() { Content = new AmbientLight(Colors.White) });
         }
 
+
+        //private void renderA
         public int numFrames { get; set; }
     }
 }
