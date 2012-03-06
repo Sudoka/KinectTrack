@@ -121,6 +121,7 @@ namespace KinectTrack
             foreach(Joint j in renderSkel.Joints) {
                 // Create a cube for each joint
                 ModelVisual3D curJointCube;
+                // Color the skeletons based on if they are step skels
                 if (renderSkel.isStepSkel)
                 {
                     curJointCube = Utils3D.getCube(Colors.Blue);
