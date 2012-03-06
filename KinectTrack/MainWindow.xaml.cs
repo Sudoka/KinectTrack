@@ -359,10 +359,13 @@ namespace KinectTrack
             drawDepthFrame = !drawDepthFrame;
         }
 
+        Stride strideAnalizer;
+
         private void grabSkelList_Click(object sender, RoutedEventArgs e)
         {
-            Stride test = new Stride(skelList);
+            strideAnalizer = new Stride(skelList);
             //TODO: add null checks and stuff here
+            /*
             copySkelList = new List<DanSkeleton>();
 
             foreach(Skeleton s in skelList) 
@@ -370,11 +373,14 @@ namespace KinectTrack
                 DanSkeleton d = new DanSkeleton(s);
                 copySkelList.Add(d);
             }
+            */
             // Set up the slider
             skelSlider.Minimum = 0;
-            skelSlider.Maximum = copySkelList.Count;
+            skelSlider.Maximum = strideAnalizer.numFrames;
             skelSlider.IsSnapToTickEnabled = true;
 
+            /* THE FOLLOWING IS AN OLD ATTEMPT AT DETECTING STEP CYCLES
+             * IT WORKS. SORT OF.
             // Find step locations
             List<double> leftFootPosDiffs = new List<double>();
             // Get distance between all left foot positions
@@ -416,7 +422,8 @@ namespace KinectTrack
             foreach (int frameNumber in realStepFrames)
             {
                 copySkelList[frameNumber].isStepSkel = true;
-            }
+            
+             */
         }
 
         private void skelSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -425,9 +432,13 @@ namespace KinectTrack
             int frameNumber = (int)e.NewValue;
             //Clear the viewport
             skelViewport.Children.Clear();
-            renderSkeleton(copySkelList[frameNumber.Clamp(0,copySkelList.Count-1)]);
+            //renderSkeleton(copySkelList[frameNumber.Clamp(0,copySkelList.Count-1)]);
+
+            strideAnalizer.drawFrameToViewport(frameNumber.Clamp(0, strideAnalizer.numFrames - 1), skelViewport);
         }
 
+
+        /*
         private void renderSkeleton(DanSkeleton renderSkel)
         {
             Model3DGroup skel3dGroup = new Model3DGroup();
@@ -456,6 +467,7 @@ namespace KinectTrack
             this.skelViewport.Children.Add(new ModelVisual3D() { Content = new AmbientLight(Colors.White) });
 
         }
+        */
 
         private void DEBUG_TextChanged(object sender, TextChangedEventArgs e)
         {

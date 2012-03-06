@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using Microsoft.Kinect;
 using System.Windows;
+using System.Windows.Media.Media3D;
+using System.Windows.Media;
 
 namespace KinectTrack
 {
@@ -19,6 +21,7 @@ namespace KinectTrack
         {
 
             capturedFrames = convertToDanFromSkel(rawSkeletonList);
+            this.numFrames = capturedFrames.Count;
 
             //rotateSkelList capturedFrames so that it is aligned with x-axis direction of movement
             rotateSkelList(this.capturedFrames);
@@ -55,7 +58,9 @@ namespace KinectTrack
 
             foreach (DanSkeleton ds in skelList)
             {
+                MessageBox.Show(ds.Joints[JointType.FootRight].Position.X);
                 ds.rotateJointsXZ(startPos.X, startPos.Z, angle);
+                MessageBox.Show(ds.Joints[JointType.FootRight].Position.X);
             }
             //use first and last frames to determine movement direction
             //rotate entire skeleton to act as though movign along x-axis
@@ -104,6 +109,40 @@ namespace KinectTrack
         }
 
 
- 
+        /// <summary>
+        /// Given a framenumber and viewport, render the skeleton that corresponds to that frame in the viewport
+        /// </summary>
+        /// <param name="frameNumber"></param>
+        /// <param name="skelViewport"></param>
+        public void drawFrameToViewport(int frameNumber, System.Windows.Controls.Viewport3D skelViewport)
+        {
+            Model3DGroup skel3dGroup = new Model3DGroup();
+            DanSkeleton renderSkel = capturedFrames[frameNumber];
+            foreach(Joint j in renderSkel.Joints) {
+                // Create a cube for each joint
+                ModelVisual3D curJointCube;
+                if (renderSkel.isStepSkel)
+                {
+                    curJointCube = Utils3D.getCube(Colors.Blue);
+                }
+                else
+                {
+                    curJointCube = Utils3D.getCube(Colors.Red);
+                }
+                Transform3DGroup tGroup = new Transform3DGroup();
+                // move the joints to the right positions
+                tGroup.Children.Add(Utils3D.getJointPosTransform(j, 10));
+                // Make the squares smaller
+                tGroup.Children.Add(new ScaleTransform3D(.5, .5, .5));
+                curJointCube.Transform = tGroup;
+                skelViewport.Children.Add(curJointCube);
+            }
+            // Put the camera in the position of the kinect (more or less)
+            skelViewport.Camera = new PerspectiveCamera(new Point3D(0, 0, -3), new Vector3D(renderSkel.Position.X, renderSkel.Position.Y, renderSkel.Position.Z), new Vector3D(0, 1, 0), 75);
+            // Add a light so that colors are visible
+            skelViewport.Children.Add(new ModelVisual3D() { Content = new AmbientLight(Colors.White) });
+        }
+
+        public int numFrames { get; set; }
     }
 }
