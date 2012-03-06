@@ -12,11 +12,11 @@ namespace KinectTrack
     class Stride
     {
         public List<DanSkeleton> capturedFrames; //TODO: make private again
-        public List<DanSkeleton> rotatedFrames;  //TODO: make private again
+        
 
         private int firstFrame;  //first frame of stride as determined by alg
         private int lastFrame;  //last frame of "stride" as determiend by alg
-        private List<Skeleton> skelList;
+        
        
         private double[] jointStandardDeviations = new double[20];  //20 joints same for below
         private double[] jointAvg = new double[20];
@@ -34,6 +34,9 @@ namespace KinectTrack
             rotateSkelList(this.capturedFrames);
             //use foot crossing function to determine actual stride start and end (save as firstFrame and lastFrame)
             this.getStridePositions();
+            //TODO: sanitize/add checks
+            capturedFrames[firstFrame].isStepSkel = true;
+            capturedFrames[lastFrame].isStepSkel = true;
             //now with a "Stride," calculate descriptive values and store as local vars
         }
 
