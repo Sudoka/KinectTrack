@@ -17,14 +17,14 @@ namespace KinectTrack
         private int firstFrame;  //first frame of stride as determined by alg
         private int lastFrame;  //last frame of "stride" as determiend by alg
         private List<Skeleton> skelList;
-        public Stride(List<Skeleton> rawSkeletonList)
+       
         private double[] jointStandardDeviations = new double[20];  //20 joints same for below
         private double[] jointAvg = new double[20];
         private double[] jointDistStandardDeviations = new double[20];  //TODO: also not 20
         private double[] jointDistAvg = new double[20];  //TODO: also not 20
         private double[] anglesStandardDeviations = new double[20];  //TODO: it's not 20
         private double[] anglesAvg = new double[20];  //TODO: not 20, stupid
-        Stride(List<Skeleton> rawSkeletonList)
+        public Stride(List<Skeleton> rawSkeletonList)
         {
 
             capturedFrames = convertToDanFromSkel(rawSkeletonList);
