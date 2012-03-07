@@ -6,6 +6,7 @@ using Microsoft.Kinect;
 using System.Windows;
 using System.Windows.Media.Media3D;
 using System.Windows.Media;
+using MoreLinq;
 
 namespace KinectTrack
 {
@@ -105,21 +106,61 @@ namespace KinectTrack
             }
             return;
         }
-                    
 
 
+        private DanSkeleton firstSkelInCycle
+        {
+            get
+            {
+                return capturedFrames[firstFrame];
+            }
+        }
+
+        private DanSkeleton lastSkelInCycle
+        {
+            get
+            {
+                return capturedFrames[lastFrame];
+            }
+        }
         /*
          * TODO: DESCRIPTIVE ATTRIBTUES - write functions to calculate these and record them as class variables
          *       List is below
          */
 
-        //percent of cycle in swing v. stance mode
+        //percent of cycle in swing v. stance mode //TODO: need to find the location of all footfalls in cycle to know this
 
-        //strideLength in distance
+        //strideLength in meters 
+        public double strideLengthMeters
+        {
+            get
+            {
+                return Utils3D.skelPointDist(firstSkelInCycle.Joints[JointType.FootRight].Position,
+                    lastSkelInCycle.Joints[JointType.FootRight].Position);
+            }
+        }
         //strideLenght in time (number of frames)
+        public int strideLengthFrames
+        {
+            get
+            {
+                return lastFrame - firstFrame;
+            }
+        }
         //velocity (combination of distance + frames)  note: learning alg should 
         //          be able to determine this implicitly, but the more info we give it the better  (can use to guess age!)
+        public double strideMetersPerSecond
+        {
+            get
+            {
+                return (strideLengthMeters / (strideLengthFrames / 30.0)); //TODO: This assumes we never drop frames! 
+                //IDEA: Could we record the wall clock time for all captured skeletons and use that? Or do we do well enough
+                // that assuming 30 fps is ok?
+            }
+        }
         //step length (should be strideLength/2 but could calculate for right and left to see if there is a difference
+        //TODO: need to know location of all footfalls
+
         //step length vs leg length (pg 43)
         //step width pg 41 (distance between feet between touchdown points)
         //foot separation (max and min)
@@ -132,8 +173,21 @@ namespace KinectTrack
 
 
         //max height off of ground (probably just max head height)
+        public double maxHeadHeightMeters
+        {
+            get
+            {
+                return capturedFrames.Max(x => x.Position.Y);
+            }
+        }
         //min height from ground (prob just min head height)
-
+        public double minHeadHeightMeters
+        {
+            get
+            {
+                return capturedFrames.Min(x => x.Position.Y);
+            }
+        }
 
         //pelvic functions
           //pelvic rotation pg 4
