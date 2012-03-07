@@ -201,8 +201,30 @@ namespace KinectTrack
           //rotations in the ankle and foot
          
         //foot angle
+        //TODO: When should we get the angle? min angle, max angle? average? 
         
         //max foot elevation
+        public double maxRFootHeight
+        {
+            get
+            {
+                return capturedFrames.Max(x => x.Joints[JointType.FootRight].Position.Y);
+            }
+        }
+        public double maxLFootHeight
+        {
+            get
+            {
+                return capturedFrames.Max(x => x.Joints[JointType.FootLeft].Position.Y);
+            }
+        }
+        public double maxFootHeightOverall
+        {
+            get
+            {
+                return Math.Max(this.maxLFootHeight, this.maxRFootHeight);
+            }
+        }
         //lateral displacement of body pg 9
             //increased with feet farther apart, decreased closer together
 
