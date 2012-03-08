@@ -166,13 +166,42 @@ namespace KinectTrack
             return jc;
         }
 
-        //TODO: rotate the position of the skelton as well as the joints
+
+        /// <summary>
+        /// Rotate a given XZ point around a given center by a given angle
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="z"></param>
+        /// <param name="xCenter"></param>
+        /// <param name="zCenter"></param>
+        /// <param name="angle"></param>
+        /// <returns></returns>
+        private Tuple<double, double> rotatePoint(double x, double z, double xCenter, double zCenter, double angle)
+        {
+                // Translate point to origin
+                double cX = x - xCenter;
+                // Z = Y!
+                double cZ = z - zCenter;
+                // Calculate sines and cosines
+                double sinAngle = Math.Sin(angle);
+                double cosAngle = Math.Cos(angle);
+
+                // do rotation
+                double xRot = cX * cosAngle - cZ * sinAngle;
+                double zRot = cX * sinAngle + cZ * cosAngle;
+
+                // Translate back
+                double newX = xRot + xCenter;
+                double newZ = zRot + zCenter;
+                return Tuple.Create(newX, newZ);
+        }
         public void rotateJointsXZ(double xCenter, double zCenter, double angle)
         {
             Joint[] rotatedJoints = new Joint[20];//getJointsCopy();
             for(int i = 0; i < rotatedJoints.Length; i++)
             {
                 Joint curJoint = this.Joints[(JointType)i].DeepClone();
+                /*
                 //Joint curJoint = rotatedJoints[i];
                 // Translate to origin
                 double cX = curJoint.Position.X - xCenter;
@@ -188,32 +217,28 @@ namespace KinectTrack
 
                 double newX = xRot + xCenter;
                 double newZ = zRot + zCenter;
-
-
-                /*
-                // The radius of the polar coordinate for this point
-                double r = Math.Sqrt((cX * cX) + (cZ * cZ));
-                // The angle of the current point (have to convert to degrees since
-                // the Vector class expresses differences in degrees and the trig functions
-                // return radian results
-                double a = Utils.radiansToDegrees(Math.Atan(cZ / cX));
-
-                // Add teh new angle 
-                double newA = a + angle;
-
-                // translate back to the original points and convert to cartesian coordinates
-                double newX = r*Math.Cos(newA) + xCenter;
-                double newZ = r*Math.Sin(newA) + zCenter;
                 */
+                Tuple<double, double> rotXZ = rotatePoint(curJoint.Position.X, curJoint.Position.Z, xCenter, zCenter, angle);
                 SkeletonPoint rotPos = new SkeletonPoint();
                 rotPos.Y = curJoint.Position.Y;
-                rotPos.X = (float)newX;
-                rotPos.Z = (float)newZ;
+                rotPos.X = (float)rotXZ.Item1;
+                rotPos.Z = (float)rotXZ.Item2;
                 curJoint.Position = rotPos;
                 rotatedJoints[i] = curJoint;
             }
+            double skeletonX = this.Position.X;
+            double skeletonY = this.Position.Y;
+
+            SkeletonPoint rotatedCenterPoint = new SkeletonPoint();
+            Tuple<double, double> rotCenter = rotatePoint(this.Position.X, this.Position.Z, xCenter, zCenter, angle);
+
+            rotatedCenterPoint.X = (float)rotCenter.Item1;
+            rotatedCenterPoint.Z = (float)rotCenter.Item2;
+            rotatedCenterPoint.Y = this.Position.Y;
+
+            this.Position = rotatedCenterPoint;
+
             typeof(JointCollection).GetField("_skeletonData", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(this.Joints, rotatedJoints);
-            //setJointCollection(rotatedJoints);
         }
         //TODO: write other useful functions here (scaling, etc...)
     }
