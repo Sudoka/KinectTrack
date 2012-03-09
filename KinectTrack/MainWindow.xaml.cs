@@ -364,6 +364,8 @@ namespace KinectTrack
         private void grabSkelList_Click(object sender, RoutedEventArgs e)
         {
             strideAnalizer = new Stride(skelList);
+            //TODO: this might not be the best place for this but it ought to work:
+            SkelListToFile(skelList,0,skelList.Count-1,"\tTest output", @"C:\Users\DCashman\Documents\UCSD\Courses\CSE227\KinectTrack\training.txt");
             //TODO: add null checks and stuff here
             /*
             copySkelList = new List<DanSkeleton>();
@@ -468,6 +470,44 @@ namespace KinectTrack
 
         }
         */
+
+        /*
+         * SkelListToFile - appends each joint in each frame in a given skeleton List to the given file. If the file does not exist, it creates a new one
+         * params:
+         *     closet - the skeleton list to print
+         *     startFrame - the frame where we should start printing, should not be less than 0
+         *     endFrame - the last frame to print to the list, should not exceed the last index of the given list
+         *     note - a note to append to the end of the line (for our purposes should at least include the person (classification))
+         *     fileName - the path and file to which to write
+         */
+        public void SkelListToFile(List<Skeleton> closet, int startFrame, int endFrame, String note, String fileName)
+        {
+            if (startFrame < 0 || endFrame >= closet.Count)
+            {  //classic off by one
+                //error message
+                return;
+            }
+            Skeleton currentFrame;
+            SkeletonPoint currentPos;
+            String output = "";  //where all the goodies will go
+            //TODO: open file for appending/writing
+            for (int i = startFrame; i <= endFrame; i++)
+            {
+                //for each frame, print out a tab delimited list of values
+                currentFrame = closet[i];
+                for (int j = 0; j < 20; j++)
+                {  //iterate through each joint
+                    currentPos = currentFrame.Joints[(JointType)j].Position;
+                    output += currentPos.X + "\t" + currentPos.Y + "\t" + currentPos.Z + "\t";
+                }
+            }
+            output += note;
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(fileName, true))  //TDO: not sure what the @ does
+            {
+                file.WriteLine(output);
+            }
+        }
+
 
         private void DEBUG_TextChanged(object sender, TextChangedEventArgs e)
         {
