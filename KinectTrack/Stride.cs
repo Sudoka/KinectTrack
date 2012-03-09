@@ -6,7 +6,7 @@ using Microsoft.Kinect;
 using System.Windows;
 using System.Windows.Media.Media3D;
 using System.Windows.Media;
-using MoreLinq;
+//using MoreLinq;
 
 namespace KinectTrack
 {

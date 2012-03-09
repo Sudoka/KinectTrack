@@ -364,6 +364,8 @@ namespace KinectTrack
         private void grabSkelList_Click(object sender, RoutedEventArgs e)
         {
             strideAnalizer = new Stride(skelList);
+            //TODO: this might not be the best place for this but it ought to work:
+            SkelListToFile(skelList,0,skelList.Count-1,"\tTest output", @"C:\Users\DCashman\Documents\UCSD\Courses\CSE227\KinectTrack\training.txt");
             //TODO: add null checks and stuff here
             /*
             copySkelList = new List<DanSkeleton>();
@@ -500,7 +502,7 @@ namespace KinectTrack
                 }
             }
             output += note;
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@fileName, true))  //TDO: not sure what the @ does
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(fileName, true))  //TDO: not sure what the @ does
             {
                 file.WriteLine(output);
             }
