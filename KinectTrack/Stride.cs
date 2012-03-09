@@ -80,6 +80,17 @@ namespace KinectTrack
             return null;
         }
 
+        // Returns the difference in the position between the left foot and the right foot for a given skeleton
+        private double footDifference(DanSkeleton d)
+        {
+            return d.Joints[JointType.FootLeft].Position.X - d.Joints[JointType.FootRight].Position.X;
+
+        }
+
+        private RelDir firstFootDown;
+        private RelDir midFootDown;
+        private RelDir lastFootDown;
+
         public void getStridePositions(){
             //use x-axis basis to determine foot-overlap period
             //set firstFrame and lastFrame variables (indexes to determien stride from private capturedFrames
@@ -88,26 +99,36 @@ namespace KinectTrack
             //base it on left - right (x-axis based after rotation)
             bool truthTest;
             DanSkeleton skeletonZero = capturedFrames[0];
-            Joint lFoot = skeletonZero.Joints[JointType.FootLeft];
-            Joint rFoot = skeletonZero.Joints[JointType.FootRight];
-            truthTest=((lFoot.Position.X-rFoot.Position.X) < 0); // if lfoot behind rfoot then truthTest = true
+            truthTest=(footDifference(skeletonZero) < 0); // if lfoot behind rfoot then truthTest = true
+            //TODO: Do we need to correct for jitter in this function?
             for(int i=0;i<capturedFrames.Count;i++){
-                //if truthTest differs, then the relative positiosn of the points have chanegd
-                if(truthTest!=((capturedFrames[i].Joints[JointType.FootLeft].Position.X-capturedFrames[i].Joints[JointType.FootRight].Position.X) < 0)){
+                //if truthTest differs, then the relative positions of the points have changed
+                if(truthTest!=(footDifference(capturedFrames[i]) < 0)){
                     truthTest=(!truthTest);
                     if(crossingPointNum==0){
                         this.firstFrame=i;
                         crossingPointNum++;
+                        firstFootDown = getLowerFoot(capturedFrames[i]);
                     }else if(crossingPointNum==2){  //we are interested in the 3rd point to end a full-stride
                         this.lastFrame=i;
-                        crossingPointNum++;  
-                        break;  //TODO: use a "break" statment? gasp!
+                        crossingPointNum++;
+                        lastFootDown = getLowerFoot(capturedFrames[i]);
+                        break;  //TODO: use a "break" statment? gasp! // WRONG: break's are awesome. you should take one now!
                     }else{
                         crossingPointNum++;
+                        midFootDown = getLowerFoot(capturedFrames[i]);
                     }
                 }
             }
             return;
+        }
+
+        private RelDir getLowerFoot(DanSkeleton skel)
+        {
+            if (skel.Joints[JointType.FootLeft].Position.Y < skel.Joints[JointType.FootRight].Position.Y)
+                return RelDir.L;
+            else
+                return RelDir.R;
         }
 
 
