@@ -87,7 +87,10 @@ namespace KinectTrack
             int crossingPointNum=0;
             //base it on left - right (x-axis based after rotation)
             bool truthTest;
-            truthTest=((capturedFrames[0].Joints[JointType.FootLeft].Position.X-capturedFrames[0].Joints[JointType.FootRight].Position.X) < 0);
+            DanSkeleton skeletonZero = capturedFrames[0];
+            Joint lFoot = skeletonZero.Joints[JointType.FootLeft];
+            Joint rFoot = skeletonZero.Joints[JointType.FootRight];
+            truthTest=((lFoot.Position.X-rFoot.Position.X) < 0); // if lfoot behind rfoot then truthTest = true
             for(int i=0;i<capturedFrames.Count;i++){
                 //if truthTest differs, then the relative positiosn of the points have chanegd
                 if(truthTest!=((capturedFrames[i].Joints[JointType.FootLeft].Position.X-capturedFrames[i].Joints[JointType.FootRight].Position.X) < 0)){
@@ -206,6 +209,10 @@ namespace KinectTrack
 
         private double angleBetweenJointPairs(Joint[] pair1, Joint[] pair2)
         {
+            if (!pair1[1].Position.Equals(pair2[0].Position))
+            {
+                throw new ArgumentException("Joint Pairs must share a common base!");
+            }
             Vector3D v1 = jointPairToVector3D(pair1);
             Vector3D v2 = jointPairToVector3D(pair2);
             return Vector3D.AngleBetween(v1, v2);
