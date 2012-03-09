@@ -201,7 +201,23 @@ namespace KinectTrack
           //rotations in the ankle and foot
          
         //foot angle
+
         //TODO: When should we get the angle? min angle, max angle? average? 
+
+        private double angleBetweenJointPairs(Joint[] pair1, Joint[] pair2)
+        {
+            Vector3D v1 = jointPairToVector3D(pair1);
+            Vector3D v2 = jointPairToVector3D(pair2);
+            return Vector3D.AngleBetween(v1, v2);
+        }
+
+        private Vector3D jointPairToVector3D(Joint[] pair)
+        {
+            return new Vector3D(
+                pair[1].Position.X - pair[0].Position.X,
+                pair[1].Position.Y - pair[0].Position.Y, 
+                pair[1].Position.Z - pair[0].Position.Z);
+        }
         
         //max foot elevation
         public double maxRFootHeight
