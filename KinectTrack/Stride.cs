@@ -162,7 +162,7 @@ namespace KinectTrack
         //TODO: need to know location of all footfalls
 
         //step length vs leg length (pg 43)
-        //step width pg 41 (distance between feet between touchdown points)
+        //step width pg 41 (distance between feet between touchdown points) //TODO: Average?
         //foot separation (max and min)
         
         //arm motion/arc
@@ -270,10 +270,16 @@ namespace KinectTrack
                 curJointCube.Transform = tGroup;
                 skelViewport.Children.Add(curJointCube);
             }
-            // Put the camera in the position of the kinect (more or less) and have it look in the positive z direction
-            skelViewport.Camera = new PerspectiveCamera(new Point3D(0, 0, -3), new Vector3D(0,0,1), new Vector3D(0, 1, 0), 75);
+            // Put the camera in a place where it can see the whole stride
+            skelViewport.Camera = new PerspectiveCamera(new Point3D(this.getStrideMidX(), 0, -3), new Vector3D(0,0,1), new Vector3D(0, 1, 0), 75);
             // Add a light so that colors are visible
             skelViewport.Children.Add(new ModelVisual3D() { Content = new AmbientLight(Colors.White) });
+        }
+
+        // Return the middle coordinate of a recorded stride set
+        private double getStrideMidX()
+        {
+            return (this.capturedFrames[0].Position.X + this.capturedFrames[this.capturedFrames.Count - 1].Position.X) / 2;
         }
 
 
