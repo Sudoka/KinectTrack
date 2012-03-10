@@ -17,6 +17,7 @@ namespace KinectTrack
 
         private int firstFrame;  //first frame of stride as determined by alg
         private int lastFrame;  //last frame of "stride" as determiend by alg
+        private int midFrame;
         
        
         private double[] jointStandardDeviations = new double[20];  //20 joints same for below
@@ -41,7 +42,40 @@ namespace KinectTrack
             //now with a "Stride," calculate descriptive values and store as local vars
         }
 
-  
+        private Stride(List<DanSkeleton> skelList)
+        {
+        }
+
+        public static Stride buildStrideFromFile(String fileName)
+        {
+            List<DanSkeleton> dList = new List<DanSkeleton>();
+
+            String[] lines = System.IO.File.ReadAllLines(fileName);
+            foreach (String line in lines)
+            {
+                String[] splitLine = line.Split(new Char[] { '\t' });
+                Stack<String> lineStack = new Stack<string>(splitLine);
+                // Joints are stored in xyz order in the order they are defined in JointType
+                var jointVals = Enum.GetValues(typeof(JointType));
+                Joint[] curJoints = new Joint[20];
+                foreach (JointType jt in jointVals)
+                {
+                    Joint addJoint = new Joint();
+                    SkeletonPoint sp = new SkeletonPoint();
+                    sp.X = (float)Convert.ToDouble(lineStack.Pop());
+                    sp.Y = (float)Convert.ToDouble(lineStack.Pop());
+                    sp.Z = (float)Convert.ToDouble(lineStack.Pop());
+                    addJoint.Position = sp;
+                    curJoints[(int)jt] = addJoint;
+                }
+                SkeletonPoint pos = new SkeletonPoint();
+                pos.X = (float)Convert.ToDouble(lineStack.Pop());
+                pos.Y = (float)Convert.ToDouble(lineStack.Pop());
+                pos.Z = (float)Convert.ToDouble(lineStack.Pop());
+                dList.Add(new DanSkeleton(curJoints, pos));
+            }
+            return new Stride(dList);
+        }
 
         private List<DanSkeleton> convertToDanFromSkel(List<Skeleton> rawSkeletonList){
             //transform this into DanSkeletons
@@ -117,6 +151,7 @@ namespace KinectTrack
                     }else{
                         crossingPointNum++;
                         midFootDown = getLowerFoot(capturedFrames[i]);
+                        this.midFrame = i;
                     }
                 }
             }
@@ -186,10 +221,12 @@ namespace KinectTrack
         //TODO: need to know location of all footfalls
 
         //step length vs leg length (pg 43)
-        //step width pg 41 (distance between feet between touchdown points) //TODO: Average?
+        
+        //step width pg 41 (distance between feet between touchdown points) //TODO: Average? // Average over all frames, min, max
         //foot separation (max and min)
         
         //arm motion/arc
+        // same things as with legs, do with arms
 
         //averages and standard deviations of all point positions
         //averages and standard deviations of all distances between points
@@ -213,11 +250,14 @@ namespace KinectTrack
             }
         }
 
+        // Use vectors to get rotation
+        // use min, max, average for all
         //pelvic functions
           //pelvic rotation pg 4
           //pelvic list  pg 4p
        
         //knee flexion?? pg 4 (might not be able to measure this)
+
 
         //other rotations
           //rotations of thorax and shoulders
@@ -273,6 +313,7 @@ namespace KinectTrack
             //increased with feet farther apart, decreased closer together
 
 
+        // Check for stooped-ness
         //center of mass measurements? see pg 3 
         
         //"straightness"

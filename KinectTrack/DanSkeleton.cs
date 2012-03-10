@@ -24,6 +24,17 @@ namespace KinectTrack
             this.TrackingState = s.TrackingState.DeepClone();
         }
 
+        public DanSkeleton(Joint[] joints, SkeletonPoint skelPos)
+            : base()
+        {
+            typeof(JointCollection).GetField("_skeletonData", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(this.Joints, joints);
+            this.Position = skelPos;
+            //Tracking ID defaults to something 
+            //Tracking state defaults to something
+            
+        }
+
+
         public void multiplyJoints(float val)
         {
             // NOTE: This function uses deep dark voodoo. 
