@@ -99,6 +99,7 @@ namespace KinectTrack
         /*
          * sensor_AllFramesReady() - event handler for when the kinect is ready to send us frames
          */
+        private Boolean skelDetected = false;
 
         void sensor_AllFramesReady(object sender, AllFramesReadyEventArgs e)
         {
@@ -147,6 +148,12 @@ namespace KinectTrack
             }
             if (skelFrame != null)
             {
+                if(!skelDetected)  {
+                    // Play sound here
+                    System.Media.SoundPlayer player = new System.Media.SoundPlayer(@"..\..\Audio\skeleton_detected.wav");
+                    player.Play();
+                    skelDetected = true;
+                }
                 // Stuff goes here...
                 Skeleton firstSkel = getFirstSkeleton(skelFrame);
                 if (firstSkel != null)
@@ -365,7 +372,7 @@ namespace KinectTrack
         {
             strideAnalizer = new Stride(skelList);
             //TODO: this might not be the best place for this but it ought to work:
-            //SkelListToFile(skelList,0,skelList.Count-1,"\tTest output", @"C:\Users\DCashman\Documents\UCSD\Courses\CSE227\KinectTrack\training.txt");
+            SkelListToFile(skelList,0,skelList.Count-1,"\tTest output", @".\training.txt");
             //TODO: add null checks and stuff here
             /*
             copySkelList = new List<DanSkeleton>();
