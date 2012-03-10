@@ -16,6 +16,7 @@ namespace KinectTrack
 
         private int firstFrame;  //first frame of stride as determined by alg
         private int lastFrame;  //last frame of "stride" as determiend by alg
+        private int midFrame;
         
        
         private double[] jointStandardDeviations = new double[20];  //20 joints same for below
@@ -40,7 +41,40 @@ namespace KinectTrack
             //now with a "Stride," calculate descriptive values and store as local vars
         }
 
-  
+        private Stride(List<DanSkeleton> skelList)
+        {
+        }
+
+        public static Stride buildStrideFromFile(String fileName)
+        {
+            List<DanSkeleton> dList = new List<DanSkeleton>();
+
+            String[] lines = System.IO.File.ReadAllLines(fileName);
+            foreach (String line in lines)
+            {
+                String[] splitLine = line.Split(new Char[] { '\t' });
+                Stack<String> lineStack = new Stack<string>(splitLine);
+                // Joints are stored in xyz order in the order they are defined in JointType
+                var jointVals = Enum.GetValues(typeof(JointType));
+                Joint[] curJoints = new Joint[20];
+                foreach (JointType jt in jointVals)
+                {
+                    Joint addJoint = new Joint();
+                    SkeletonPoint sp = new SkeletonPoint();
+                    sp.X = (float)Convert.ToDouble(lineStack.Pop());
+                    sp.Y = (float)Convert.ToDouble(lineStack.Pop());
+                    sp.Z = (float)Convert.ToDouble(lineStack.Pop());
+                    addJoint.Position = sp;
+                    curJoints[(int)jt] = addJoint;
+                }
+                SkeletonPoint pos = new SkeletonPoint();
+                pos.X = (float)Convert.ToDouble(lineStack.Pop());
+                pos.Y = (float)Convert.ToDouble(lineStack.Pop());
+                pos.Z = (float)Convert.ToDouble(lineStack.Pop());
+                dList.Add(new DanSkeleton(curJoints, pos));
+            }
+            return new Stride(dList);
+        }
 
         private List<DanSkeleton> convertToDanFromSkel(List<Skeleton> rawSkeletonList){
             //transform this into DanSkeletons
@@ -79,6 +113,17 @@ namespace KinectTrack
             return null;
         }
 
+        // Returns the difference in the position between the left foot and the right foot for a given skeleton
+        private double footDifference(DanSkeleton d)
+        {
+            return d.Joints[JointType.FootLeft].Position.X - d.Joints[JointType.FootRight].Position.X;
+
+        }
+
+        private RelDir firstFootDown;
+        private RelDir midFootDown;
+        private RelDir lastFootDown;
+
         public void getStridePositions(){
             //use x-axis basis to determine foot-overlap period
             //set firstFrame and lastFrame variables (indexes to determien stride from private capturedFrames
@@ -86,24 +131,38 @@ namespace KinectTrack
             int crossingPointNum=0;
             //base it on left - right (x-axis based after rotation)
             bool truthTest;
-            truthTest=((capturedFrames[0].Joints[JointType.FootLeft].Position.X-capturedFrames[0].Joints[JointType.FootRight].Position.X) < 0);
+            DanSkeleton skeletonZero = capturedFrames[0];
+            truthTest=(footDifference(skeletonZero) < 0); // if lfoot behind rfoot then truthTest = true
+            //TODO: Do we need to correct for jitter in this function?
             for(int i=0;i<capturedFrames.Count;i++){
-                //if truthTest differs, then the relative positiosn of the points have chanegd
-                if(truthTest!=((capturedFrames[i].Joints[JointType.FootLeft].Position.X-capturedFrames[i].Joints[JointType.FootRight].Position.X) < 0)){
+                //if truthTest differs, then the relative positions of the points have changed
+                if(truthTest!=(footDifference(capturedFrames[i]) < 0)){
                     truthTest=(!truthTest);
                     if(crossingPointNum==0){
                         this.firstFrame=i;
                         crossingPointNum++;
+                        firstFootDown = getLowerFoot(capturedFrames[i]);
                     }else if(crossingPointNum==2){  //we are interested in the 3rd point to end a full-stride
                         this.lastFrame=i;
-                        crossingPointNum++;  
-                        break;  //TODO: use a "break" statment? gasp!
+                        crossingPointNum++;
+                        lastFootDown = getLowerFoot(capturedFrames[i]);
+                        break;  //TODO: use a "break" statment? gasp! // WRONG: break's are awesome. you should take one now!
                     }else{
                         crossingPointNum++;
+                        midFootDown = getLowerFoot(capturedFrames[i]);
+                        this.midFrame = i;
                     }
                 }
             }
             return;
+        }
+
+        private RelDir getLowerFoot(DanSkeleton skel)
+        {
+            if (skel.Joints[JointType.FootLeft].Position.Y < skel.Joints[JointType.FootRight].Position.Y)
+                return RelDir.L;
+            else
+                return RelDir.R;
         }
 
 
@@ -161,10 +220,12 @@ namespace KinectTrack
         //TODO: need to know location of all footfalls
 
         //step length vs leg length (pg 43)
-        //step width pg 41 (distance between feet between touchdown points)
+        
+        //step width pg 41 (distance between feet between touchdown points) //TODO: Average? // Average over all frames, min, max
         //foot separation (max and min)
         
         //arm motion/arc
+        // same things as with legs, do with arms
 
         //averages and standard deviations of all point positions
         //averages and standard deviations of all distances between points
@@ -188,11 +249,14 @@ namespace KinectTrack
             }
         }
 
+        // Use vectors to get rotation
+        // use min, max, average for all
         //pelvic functions
           //pelvic rotation pg 4
           //pelvic list  pg 4p
        
         //knee flexion?? pg 4 (might not be able to measure this)
+
 
         //other rotations
           //rotations of thorax and shoulders
@@ -200,7 +264,27 @@ namespace KinectTrack
           //rotations in the ankle and foot
          
         //foot angle
+
         //TODO: When should we get the angle? min angle, max angle? average? 
+
+        private double angleBetweenJointPairs(Joint[] pair1, Joint[] pair2)
+        {
+            if (!pair1[1].Position.Equals(pair2[0].Position))
+            {
+                throw new ArgumentException("Joint Pairs must share a common base!");
+            }
+            Vector3D v1 = jointPairToVector3D(pair1);
+            Vector3D v2 = jointPairToVector3D(pair2);
+            return Vector3D.AngleBetween(v1, v2);
+        }
+
+        private Vector3D jointPairToVector3D(Joint[] pair)
+        {
+            return new Vector3D(
+                pair[1].Position.X - pair[0].Position.X,
+                pair[1].Position.Y - pair[0].Position.Y, 
+                pair[1].Position.Z - pair[0].Position.Z);
+        }
         
         //max foot elevation
         public double maxRFootHeight
@@ -228,6 +312,7 @@ namespace KinectTrack
             //increased with feet farther apart, decreased closer together
 
 
+        // Check for stooped-ness
         //center of mass measurements? see pg 3 
         
         //"straightness"
@@ -269,10 +354,16 @@ namespace KinectTrack
                 curJointCube.Transform = tGroup;
                 skelViewport.Children.Add(curJointCube);
             }
-            // Put the camera in the position of the kinect (more or less) and have it look in the positive z direction
-            skelViewport.Camera = new PerspectiveCamera(new Point3D(0, 0, -3), new Vector3D(0,0,1), new Vector3D(0, 1, 0), 75);
+            // Put the camera in a place where it can see the whole stride
+            skelViewport.Camera = new PerspectiveCamera(new Point3D(this.getStrideMidX(), 0, -3), new Vector3D(0,0,1), new Vector3D(0, 1, 0), 75);
             // Add a light so that colors are visible
             skelViewport.Children.Add(new ModelVisual3D() { Content = new AmbientLight(Colors.White) });
+        }
+
+        // Return the middle coordinate of a recorded stride set
+        private double getStrideMidX()
+        {
+            return (this.capturedFrames[0].Position.X + this.capturedFrames[this.capturedFrames.Count - 1].Position.X) / 2;
         }
 
 

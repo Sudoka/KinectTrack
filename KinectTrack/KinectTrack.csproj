@@ -37,6 +37,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Kinect, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="MoreLinq">
+      <HintPath>..\MoreLinq\MoreLinq.dll</HintPath>
+    </Reference>
     <Reference Include="Petzold.Media3D">
       <HintPath>.\Petzold.Media3D.dll</HintPath>
     </Reference>
@@ -60,6 +63,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="RelDir.cs" />
     <Compile Include="Utils3D.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
