@@ -365,7 +365,7 @@ namespace KinectTrack
         {
             strideAnalizer = new Stride(skelList);
             //TODO: this might not be the best place for this but it ought to work:
-            SkelListToFile(skelList,0,skelList.Count-1,"\tTest output", @"C:\Users\DCashman\Documents\UCSD\Courses\CSE227\KinectTrack\training.txt");
+            //SkelListToFile(skelList,0,skelList.Count-1,"\tTest output", @"C:\Users\DCashman\Documents\UCSD\Courses\CSE227\KinectTrack\training.txt");
             //TODO: add null checks and stuff here
             /*
             copySkelList = new List<DanSkeleton>();
@@ -500,14 +500,28 @@ namespace KinectTrack
                     currentPos = currentFrame.Joints[(JointType)j].Position;
                     output += currentPos.X + "\t" + currentPos.Y + "\t" + currentPos.Z + "\t";
                 }
+                //add skeleton position too
+                currentPos=currentFrame.Position;
+                output += currentPos.X + "\t" + currentPos.Y + "\t" + currentPos.Z + "\t";
+                output += "\n";
             }
-            output += note;
+            output += "###"+note+"\n";//### will denote the note
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(fileName, true))  //TDO: not sure what the @ does
             {
                 file.WriteLine(output);
             }
+
+
         }
 
+
+        /*
+         * FileToSkelLists - 
+         */
+        public List<List<Skeleton>> FileToSkelLists(String fileName)
+        {
+            return null;
+        }
 
         private void DEBUG_TextChanged(object sender, TextChangedEventArgs e)
         {
