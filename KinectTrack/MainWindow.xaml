@@ -1,7 +1,7 @@
 ﻿<Window x:Class="KinectTrack.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="635" Width="1349" >
+        Title="MainWindow" Height="635" Width="1349" Loaded="Window_Loaded">
     <Grid>
         <Image Height="240" HorizontalAlignment="Left" Margin="12,12,0,0" Name="visBox" Stretch="Fill" VerticalAlignment="Top" Width="320" ImageFailed="visBox_ImageFailed" />
         <Image Height="240" HorizontalAlignment="Left" Margin="458,12,0,0" Name="depthBox" Stretch="Fill" VerticalAlignment="Top" Width="320" />
