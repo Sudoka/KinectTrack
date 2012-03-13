@@ -19,12 +19,14 @@ namespace KinectTrack
         private int midFrame;
         
        
+        /*
         private double[] jointStandardDeviations = new double[20];  //20 joints same for below
         private double[] jointAvg = new double[20];
         private double[] jointDistStandardDeviations = new double[20];  //TODO: also not 20
         private double[] jointDistAvg = new double[20];  //TODO: also not 20
         private double[] anglesStandardDeviations = new double[20];  //TODO: it's not 20
         private double[] anglesAvg = new double[20];  //TODO: not 20, stupid
+        */
         public Stride(List<Skeleton> rawSkeletonList)
         {
 
@@ -200,6 +202,7 @@ namespace KinectTrack
                     lastSkelInCycle.Joints[JointType.FootRight].Position);
             }
         }
+
         //strideLenght in time (number of frames)
         public int strideLengthFrames
         {
@@ -208,6 +211,7 @@ namespace KinectTrack
                 return lastFrame - firstFrame;
             }
         }
+
         //velocity (combination of distance + frames)  note: learning alg should 
         //          be able to determine this implicitly, but the more info we give it the better  (can use to guess age!)
         public double strideMetersPerSecond
@@ -219,6 +223,7 @@ namespace KinectTrack
                 // that assuming 30 fps is ok?
             }
         }
+
         //step length (should be strideLength/2 but could calculate for right and left to see if there is a difference
         //TODO: need to know location of all footfalls
 
@@ -226,10 +231,112 @@ namespace KinectTrack
         
         //step width pg 41 (distance between feet between touchdown points) //TODO: Average? // Average over all frames, min, max
         //foot separation (max and min)
+
+        public double widthBetweenFeetAvg
+        {
+            get
+            {
+                double widthSum = 0;
+                for (int i = firstFrame; i < lastFrame + 1; i++)
+                {
+                    DanSkeleton curSkel = capturedFrames[i];
+                    widthSum += Math.Abs((curSkel.Joints[JointType.FootRight].Position.Z -
+                        curSkel.Joints[JointType.FootLeft].Position.Z));
+                }
+
+                return (widthSum / (lastFrame - firstFrame));
+            }
+        }
         
         //arm motion/arc
         // same things as with legs, do with arms
 
+        private List<List<double>> getAllDistLists()
+        {
+            // for every pair of points, calculate the distance between them
+            var allDists = new List<List<double>>();
+            int numDists = 180; // Dan says this is right 
+
+            for (int i = firstFrame; i < lastFrame + 1; i++)
+            {
+                DanSkeleton curSkel = capturedFrames[i];
+
+                List<double> curSkelDists = new List<double>();
+                for (int j = 0; j < (Enum.GetNames(typeof(JointType))).Length; j++)
+                {
+                    for (int k = j + 1; k < (Enum.GetNames(typeof(JointType))).Length; k++)
+                    {
+                        double jointDist = Utils3D.jointDist(curSkel.Joints[(JointType)i], curSkel.Joints[(JointType)k]);
+                        curSkelDists.Add(jointDist);
+
+                    }
+                }
+                allDists.Add(curSkelDists);
+                if (allDists.Count != numDists) throw new Exception("You are wrong, dan!");
+            }
+            return allDists;
+        }
+        public double[] distanceBetweenAllPointsMax
+        {
+            get
+            {
+                int numDists = 180; // Dan says this is right 
+                var allDists = this.getAllDistLists();
+                var outList = new List<double>();
+                for (int i = 0; i < numDists; i++)
+                {
+                    double curMax = double.MinValue;
+                    foreach (List<double> l in allDists)
+                    {
+                        curMax = Math.Max(curMax, l[i]);
+                   
+                    }
+                    outList.Add(curMax);
+                }
+                return outList.ToArray();
+            }
+        }
+
+        public double[] distanceBetweenAllPointsMin
+        {
+            get
+            {
+                int numDists = 180; // Dan says this is right 
+                var allDists = this.getAllDistLists();
+                var outList = new List<double>();
+                for (int i = 0; i < numDists; i++)
+                {
+                    double curMin = double.MaxValue;
+                    foreach (List<double> l in allDists)
+                    {
+                        curMin = Math.Min(curMin, l[i]);
+                   
+                    }
+                    outList.Add(curMin);
+                }
+                return outList.ToArray();
+            }
+        }
+        public double[] distanceBetweenAllPointsAvg
+
+        {
+            get
+            {
+                int numDists = 180; // Dan says this is right 
+                var allDists = this.getAllDistLists();
+                var outList = new List<double>();
+                for (int i = 0; i < numDists; i++)
+                {
+                    double sumVal = 0;
+                    foreach (List<double> l in allDists)
+                    {
+                        sumVal += l[i];
+                    }
+                    outList.Add(sumVal / allDists.Count);
+                }
+                return outList.ToArray();
+            }
+        }
         //averages and standard deviations of all point positions
         //averages and standard deviations of all distances between points
         //averages and standard deviations of all angles between lines between points
@@ -267,12 +374,77 @@ namespace KinectTrack
           //rotations in the ankle and foot
          
         //foot angle
+        private double[] getAllFootAngles(RelDir foot)
+        {
+            var startEnum = foot == RelDir.L ? 13 : 17;
 
+            var aList = new List<double>();
+            for (int i = firstFrame; i < lastFrame + 1; i++)
+            {
+                DanSkeleton curSkel = capturedFrames[i];
+                aList.Add(angleBetweenJointPairs(Tuple.Create(curSkel.Joints[(JointType) startEnum], curSkel.Joints[(JointType) startEnum+1]),
+                                       Tuple.Create(curSkel.Joints[(JointType) startEnum + 1], curSkel.Joints[(JointType) startEnum+2])));
+            }
+            return aList.ToArray();
+        }
+        public double leftFootAngleAvg
+        {
+            get
+            {
+                double[] angles = getAllFootAngles(RelDir.L);
+                return angles.Sum() / (lastFrame - firstFrame);
+            }
+        }
+
+        public double rightFootAngleAvg
+        {
+            get
+            {
+                double[] angles = getAllFootAngles(RelDir.R);
+                return angles.Sum() / (lastFrame - firstFrame);
+            }
+        }
+
+        public double leftFootAngleMin
+        {
+            get
+            {
+                double[] angles = getAllFootAngles(RelDir.L);
+                return angles.Min();
+            }
+        }
+
+        public double rightFootAngleMin
+        {
+            get
+            {
+                double[] angles = getAllFootAngles(RelDir.R);
+                return angles.Min();
+            }
+        }
+
+
+        public double leftFootAngleMax
+        {
+            get
+            {
+                double[] angles = getAllFootAngles(RelDir.L);
+                return angles.Max();
+            }
+        }
+        public double rightFootAngleMax
+        {
+            get
+            {
+                double[] angles = getAllFootAngles(RelDir.R);
+                return angles.Max();
+            }
+        }
         //TODO: When should we get the angle? min angle, max angle? average? 
 
-        private double angleBetweenJointPairs(Joint[] pair1, Joint[] pair2)
+        private double angleBetweenJointPairs(Tuple<Joint,Joint> pair1, Tuple<Joint, Joint> pair2) //Joint[] pair1, Joint[] pair2)
         {
-            if (!pair1[1].Position.Equals(pair2[0].Position))
+            if (!pair1.Item2.Position.Equals(pair2.Item1.Position))
             {
                 throw new ArgumentException("Joint Pairs must share a common base!");
             }
@@ -281,12 +453,12 @@ namespace KinectTrack
             return Vector3D.AngleBetween(v1, v2);
         }
 
-        private Vector3D jointPairToVector3D(Joint[] pair)
+        private Vector3D jointPairToVector3D(Tuple<Joint, Joint> pair)
         {
             return new Vector3D(
-                pair[1].Position.X - pair[0].Position.X,
-                pair[1].Position.Y - pair[0].Position.Y, 
-                pair[1].Position.Z - pair[0].Position.Z);
+                pair.Item2.Position.X - pair.Item1.Position.X,
+                pair.Item2.Position.Y - pair.Item1.Position.Y, 
+                pair.Item2.Position.Z - pair.Item1.Position.Z);
         }
         
         //max foot elevation

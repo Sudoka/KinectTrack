@@ -99,6 +99,7 @@ namespace KinectTrack
         /*
          * sensor_AllFramesReady() - event handler for when the kinect is ready to send us frames
          */
+        private Boolean skelDetected = false;
 
         void sensor_AllFramesReady(object sender, AllFramesReadyEventArgs e)
         {
@@ -151,6 +152,13 @@ namespace KinectTrack
                 Skeleton firstSkel = getFirstSkeleton(skelFrame);
                 if (firstSkel != null)
                 {
+                    if (!skelDetected)
+                    {
+                        // Play sound here
+                        System.Media.SoundPlayer player = new System.Media.SoundPlayer(@"..\..\Audio\skeleton_detected.wav");
+                        player.Play();
+                        skelDetected = true;
+                    }
                     // Print the fun face on the image frame
                     Skeleton normSkel = normalizeSkel(firstSkel);
                     //testing for point indices  TODO:  not working on display, delete this
@@ -366,7 +374,8 @@ namespace KinectTrack
             strideAnalizer = new Stride(skelList);
             //strideAnalizer = Stride.buildStrideFromFile(@"..\..\..\training.txt");
             //TODO: this might not be the best place for this but it ought to work:
-            SkelListToFile(skelList,0,skelList.Count-1,"\tTest output", @"C:\Users\DCashman\Documents\UCSD\Courses\CSE227\KinectTrack\training.txt");
+            SkelListToFile(skelList,0,skelList.Count-1,"\tTest output", @".\training.txt");
+            //SkelListToFile(skelList,0,skelList.Count-1,"\tTest output", @"C:\Users\DCashman\Documents\UCSD\Courses\CSE227\KinectTrack\training.txt");
             //TODO: add null checks and stuff here
             /*
             copySkelList = new List<DanSkeleton>();

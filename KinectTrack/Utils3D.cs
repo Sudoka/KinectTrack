@@ -24,6 +24,11 @@ namespace KinectTrack
             return getJointPosTransform(j, 1);
         }
 
+        public static double jointDist(Joint j1, Joint j2)
+        {
+            return skelPointDist(j1.Position, j2.Position);
+        }
+
         // Returns the distance in 3d space between 2 skel points
         public static double skelPointDist(SkeletonPoint s1, SkeletonPoint s2)
         {
