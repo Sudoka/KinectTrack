@@ -148,16 +148,17 @@ namespace KinectTrack
             }
             if (skelFrame != null)
             {
-                if(!skelDetected)  {
-                    // Play sound here
-                    System.Media.SoundPlayer player = new System.Media.SoundPlayer(@"..\..\Audio\skeleton_detected.wav");
-                    player.Play();
-                    skelDetected = true;
-                }
                 // Stuff goes here...
                 Skeleton firstSkel = getFirstSkeleton(skelFrame);
                 if (firstSkel != null)
                 {
+                    if (!skelDetected)
+                    {
+                        // Play sound here
+                        System.Media.SoundPlayer player = new System.Media.SoundPlayer(@"..\..\Audio\skeleton_detected.wav");
+                        player.Play();
+                        skelDetected = true;
+                    }
                     // Print the fun face on the image frame
                     Skeleton normSkel = normalizeSkel(firstSkel);
                     //testing for point indices  TODO:  not working on display, delete this
