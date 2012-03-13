@@ -43,36 +43,39 @@ namespace KinectTrack
             //now with a "Stride," calculate descriptive values and store as local vars
         }
 
-        private Stride(List<DanSkeleton> skelList)
+      /*  private Stride(List<DanSkeleton> skelList)
         {
-        }
+        }  */
 
         public static Stride buildStrideFromFile(String fileName)
         {
-            List<DanSkeleton> dList = new List<DanSkeleton>();
+            List<Skeleton> dList = new List<Skeleton>();
 
             String[] lines = System.IO.File.ReadAllLines(fileName);
             foreach (String line in lines)
             {
                 String[] splitLine = line.Split(new Char[] { '\t' });
-                Stack<String> lineStack = new Stack<string>(splitLine);
+                Queue<String> lineStack = new Queue<string>(splitLine);
                 // Joints are stored in xyz order in the order they are defined in JointType
                 var jointVals = Enum.GetValues(typeof(JointType));
                 Joint[] curJoints = new Joint[20];
+                if(lineStack.Peek().Equals("###")) break;
                 foreach (JointType jt in jointVals)
                 {
+                    int tester = (int) jt;
                     Joint addJoint = new Joint();
                     SkeletonPoint sp = new SkeletonPoint();
-                    sp.X = (float)Convert.ToDouble(lineStack.Pop());
-                    sp.Y = (float)Convert.ToDouble(lineStack.Pop());
-                    sp.Z = (float)Convert.ToDouble(lineStack.Pop());
+                    String Xstring = lineStack.Dequeue();
+                    sp.X = (float)Convert.ToDouble(Xstring);
+                    sp.Y = (float)Convert.ToDouble(lineStack.Dequeue());
+                    sp.Z = (float)Convert.ToDouble(lineStack.Dequeue());
                     addJoint.Position = sp;
                     curJoints[(int)jt] = addJoint;
                 }
                 SkeletonPoint pos = new SkeletonPoint();
-                pos.X = (float)Convert.ToDouble(lineStack.Pop());
-                pos.Y = (float)Convert.ToDouble(lineStack.Pop());
-                pos.Z = (float)Convert.ToDouble(lineStack.Pop());
+                pos.X = (float)Convert.ToDouble(lineStack.Dequeue());
+                pos.Y = (float)Convert.ToDouble(lineStack.Dequeue());
+                pos.Z = (float)Convert.ToDouble(lineStack.Dequeue());
                 dList.Add(new DanSkeleton(curJoints, pos));
             }
             return new Stride(dList);
@@ -94,7 +97,7 @@ namespace KinectTrack
         {
             //TODO: rotate the DanSkel list that we got from initial list
             SkeletonPoint startPos = skelList[0].Position;
-            SkeletonPoint endPos = skelList[skelList.Count -1].Position;
+            SkeletonPoint endPos = skelList[skelList.Count -1].Position;  //TODO: change so that if no skel, no prob
 
             // Get a 2d Vector describing the start and end in terms of z and x
             Vector angleVector = new Vector(endPos.X - startPos.X, endPos.Z - startPos.Z);

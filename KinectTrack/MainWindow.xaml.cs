@@ -372,8 +372,10 @@ namespace KinectTrack
         private void grabSkelList_Click(object sender, RoutedEventArgs e)
         {
             strideAnalizer = new Stride(skelList);
+            //strideAnalizer = Stride.buildStrideFromFile(@"..\..\..\training.txt");
             //TODO: this might not be the best place for this but it ought to work:
             SkelListToFile(skelList,0,skelList.Count-1,"\tTest output", @".\training.txt");
+            //SkelListToFile(skelList,0,skelList.Count-1,"\tTest output", @"C:\Users\DCashman\Documents\UCSD\Courses\CSE227\KinectTrack\training.txt");
             //TODO: add null checks and stuff here
             /*
             copySkelList = new List<DanSkeleton>();
