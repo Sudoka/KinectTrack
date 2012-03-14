@@ -15,6 +15,8 @@ namespace KinectTrack
         private List<List<int>> discreteFrames;  //a list of each "walking" sequence represented as a sequence of discrete klusters
         private List<List<Skeleton>> closet;
         private String klusterFile="klusters.txt";
+        private String trainingAsKlusters="trainingAsKlusters.txt";
+        private String classifyFile = "klustersToBeClassified.txt";
         private Random rando = new Random();
         private const double KlusterTrainingValue = .001;  //TODO: alter this?  this determines when clusters stop moving
 
@@ -28,13 +30,14 @@ namespace KinectTrack
                 trainKlusters();     //use k-means clustering to get final cluster values
                 printKlusters(klusterFile);     //print the trained clusters to a file so they can be used later for classifying
                 assignAllToKlusters();
-                printDataAsKlusters();  //TODO: print the actual data as represented by clusters
+                printDataAsKlusters(trainingAsKlusters);  //TODO: print the actual data as represented by clusters
             }
             else
             {   //not training just need to turn data into clusters
                 initKlusters(klusterFile);
+                assignAllToKlusters();
+                printDataAsKlusters(classifyFile);
             }
-
         }
 
         /*
@@ -111,7 +114,38 @@ namespace KinectTrack
          */
         public void initKlusters(String fileName)
         {
-            //TODO: implement me
+            //grab the clusters from the given file of clusters
+            //TODO: assert numClusters from file matches number desired here
+
+            int lineCount = 0;
+            List<List<SkeletonPoint>> klustersFromFile = new List<List<SkeletonPoint>>();
+
+            String[] lines = System.IO.File.ReadAllLines(fileName);
+            foreach (String line in lines)
+            {
+               
+                klustersFromFile.Add(new List<SkeletonPoint>());
+                String[] splitLine = line.Split(new Char[] { '\t' });
+                Queue<String> lineStack = new Queue<string>(splitLine);
+                // Joints are stored in xyz order in the order they are defined in JointType
+                
+                for(int i=0; i < 20; i++)
+                {
+                    SkeletonPoint sp = new SkeletonPoint();
+                    String Xstring = lineStack.Dequeue();
+                    sp.X = (float)Convert.ToDouble(Xstring);
+                    sp.Y = (float)Convert.ToDouble(lineStack.Dequeue());
+                    sp.Z = (float)Convert.ToDouble(lineStack.Dequeue());
+                    //klustersFromFile[lineCount][i] = sp;
+                    klusterz[lineCount,i] = sp;  //TODO: assert that it's within boundary
+                }
+                lineCount++;
+                if (lineCount >= numKlusters)
+                {
+                    break;  //TODO: remove this and add an assert above
+                }
+            }
+
             return;
         }
 
@@ -120,14 +154,19 @@ namespace KinectTrack
          */
         public void trainKlusters(){
             double movement =0;
-            SkeletonPoint[] tempFrame = new SkeletonPoint[20];
+            
             do{
+                //create a bucket for each cluster, it will contain a list of all skeletons mapped to that cluster
                 List<Skeleton>[] buckets = new List<Skeleton>[numKlusters]; 
-                for(int i = 0; i<numKlusters; i++){
+                for(int i = 0; i < numKlusters; i++){
                     buckets[i]=new List<Skeleton>();
                 }
+                //assign every frame to a cluster (cluster values shown in "discreteFrames"
                 assignAllToKlusters();
+                //add each frame to the corresponding cluster-bucket
+                //for each training sequence
                 for(int i = 0; i < discreteFrames.Count; i++){
+                    //for each frame in each training sequence
                     for( int j = 0; j < discreteFrames[j].Count; j++){
                          buckets[discreteFrames[i][j]].Add(closet[i][j]);
                     }
@@ -136,6 +175,7 @@ namespace KinectTrack
                 for(int i = 0; i < numKlusters; i++){
                     //add all of the coordinates up from each frame assigned to this cluster
                     int numInKluster=buckets[i].Count;
+                    SkeletonPoint[] tempFrame = new SkeletonPoint[20];
                     for(int j = 0; j < numInKluster; j++){
                         Skeleton currentSkel = buckets[i][j];
                         for(int k = 0; k < 20; k++){
@@ -145,13 +185,20 @@ namespace KinectTrack
                         }
                     }
                     for(int k = 0; k < 20; k++){
-                        oldKlusterz[i,k].X=tempFrame[k].X/numInKluster;  //TODO: cast to double?
-                        oldKlusterz[i,k].Y=tempFrame[k].Y/numInKluster;
-                        oldKlusterz[i,k].Z=tempFrame[k].Z/numInKluster;
+                        //save old klusterz values
+                        oldKlusterz[i,k].X=klusterz[i,k].X;  //TODO: cast to double?
+                        oldKlusterz[i,k].Y=klusterz[i,k].Y;
+                        oldKlusterz[i,k].Z=klusterz[i,k].Z;
+                        //calculate new ones
+                        klusterz[i, k].X = tempFrame[k].X / numInKluster;  //TODO: cast to double?
+                        klusterz[i, k].Y = tempFrame[k].Y / numInKluster;
+                        klusterz[i, k].Z = tempFrame[k].Z / numInKluster;
                     }
+                    //get the difference between them
                     movement = Math.Max(movement,(klusterDistFromKluster(i, i)));
+                    //TODO: add debug statment here?
                 }
-            }while(movement<KlusterTrainingValue);
+            }while(movement < KlusterTrainingValue);
             return;
         }
 
@@ -161,7 +208,7 @@ namespace KinectTrack
             return rando.NextDouble() * (max - min) + min;
         }
 
-        public void printKlusters(String fileName)
+        public void printKlustersWithLabels(String fileName)
         {
 
             String output = "";  //where all the goodies will go
@@ -177,12 +224,64 @@ namespace KinectTrack
                 output += "\n";
             }
 
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(fileName, true))  //TDO: not sure what the @ does
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(fileName, false))  
             {
                 file.WriteLine(output);
             }
             return;
         }
+
+
+        /*
+         * printKlusters - normal, without labels
+         */
+        public void printKlusters(String fileName)
+        {
+
+            String output = "";  //where all the goodies will go
+            for (int i = 0; i < numKlusters; i++)
+            {
+                for (int j = 0; j < 20; j++)
+                {
+                    output +=klusterz[i, j].X + "\t";
+                    output +=klusterz[i, j].Y + "\t";
+                    output +=klusterz[i, j].Z + "\t";
+                }
+                output += "\n";
+            }
+
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(fileName, false))
+            {
+                file.WriteLine(output);
+            }
+            return;
+        }
+
+
+        public void printDataAsKlusters(string fileName)
+        {
+
+                String output = "";  //where all the goodies will go
+                //for each training sequence
+                for (int i = 0; i < discreteFrames.Count; i++)
+                {
+                    //print each state
+                    for (int j = 0; j < discreteFrames[i].Count; j++)
+                    {
+                        output += discreteFrames[i][j] + "\t";
+                    }
+                    output += "\n";
+                }
+                //output += "###"+note+"\n";//### will denote the note
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(fileName, true))  //TDO: not sure what the @ does
+                {
+                    file.WriteLine(output);
+                }
+                return;
+        }
+
+
+
 
         /*
          * assignAllToKlusters() - assigns the given list of list of skeletons to a list of list of ints representing states
