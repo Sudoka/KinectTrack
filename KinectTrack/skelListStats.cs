@@ -11,13 +11,37 @@ namespace KinectTrack
         public float maxX, maxY, maxZ, minX, minY, minZ;
         private const int numKlusters = 128;  //try starting with 128 clusters?
         private SkeletonPoint[,] klusterz= new SkeletonPoint[numKlusters,20];  //ignoring skeleton position
+        private SkeletonPoint[,] oldKlusterz = new SkeletonPoint[numKlusters, 20];  //use this to calculate difference between skeleton iterations
         private List<List<int>> discreteFrames;  //a list of each "walking" sequence represented as a sequence of discrete klusters
         private List<List<Skeleton>> closet;
+        private String klusterFile="klusters.txt";
         private Random rando = new Random();
+        private const double KlusterTrainingValue = .001;  //TODO: alter this?  this determines when clusters stop moving
 
-        public skelListStats(List<List<Skeleton>> closet)
+        public skelListStats(List<List<Skeleton>> closet, Boolean training)
         {
             this.closet = closet;  //should work since it won't be garbage-collected with a reference...  TODO: right?
+            if (training)
+            {
+                calculateExtrema();  //find the bounds for the random init of the clusters
+                initKlusters();      //initialize clusters to starting value
+                trainKlusters();     //use k-means clustering to get final cluster values
+                printKlusters(klusterFile);     //print the trained clusters to a file so they can be used later for classifying
+                assignAllToKlusters();
+                printDataAsKlusters();  //TODO: print the actual data as represented by clusters
+            }
+            else
+            {   //not training just need to turn data into clusters
+                initKlusters(klusterFile);
+            }
+
+        }
+
+        /*
+         * calculateExtrema - calculate the max and min for the three dimensions for use in creating the K clusters
+         */
+        private void calculateExtrema()
+        {
             //assume that 0 will be within the range of values
             maxX = 0;
             minX = 0;
@@ -63,8 +87,8 @@ namespace KinectTrack
                     }
                 }
             }
+            return;
         }
-
         /*
          * initialize Klusters - set the desired number of clusters to their randomized values
          */
@@ -90,6 +114,47 @@ namespace KinectTrack
             //TODO: implement me
             return;
         }
+
+        /*
+         * train clusters - uses k-means clustering to train final set of clusters
+         */
+        public void trainKlusters(){
+            double movement =0;
+            SkeletonPoint[] tempFrame = new SkeletonPoint[20];
+            do{
+                List<Skeleton>[] buckets = new List<Skeleton>[numKlusters]; 
+                for(int i = 0; i<numKlusters; i++){
+                    buckets[i]=new List<Skeleton>();
+                }
+                assignAllToKlusters();
+                for(int i = 0; i < discreteFrames.Count; i++){
+                    for( int j = 0; j < discreteFrames[j].Count; j++){
+                         buckets[discreteFrames[i][j]].Add(closet[i][j]);
+                    }
+                }
+                //go through each cluster to assign old cluster and new cluster
+                for(int i = 0; i < numKlusters; i++){
+                    //add all of the coordinates up from each frame assigned to this cluster
+                    int numInKluster=buckets[i].Count;
+                    for(int j = 0; j < numInKluster; j++){
+                        Skeleton currentSkel = buckets[i][j];
+                        for(int k = 0; k < 20; k++){
+                            tempFrame[k].X+=currentSkel.Joints[(JointType)k].Position.X;
+                            tempFrame[k].Y+=currentSkel.Joints[(JointType)k].Position.Y;
+                            tempFrame[k].Z+=currentSkel.Joints[(JointType)k].Position.Z;
+                        }
+                    }
+                    for(int k = 0; k < 20; k++){
+                        oldKlusterz[i,k].X=tempFrame[k].X/numInKluster;  //TODO: cast to double?
+                        oldKlusterz[i,k].Y=tempFrame[k].Y/numInKluster;
+                        oldKlusterz[i,k].Z=tempFrame[k].Z/numInKluster;
+                    }
+                    movement = Math.Max(movement,(klusterDistFromKluster(i, i)));
+                }
+            }while(movement<KlusterTrainingValue);
+            return;
+        }
+
 
         private double getRand(double min, double max)
         {
@@ -172,6 +237,23 @@ namespace KinectTrack
                 sum += Math.Pow((klusterz[klusterNum, i].X - frame.Joints[(JointType)i].Position.X), 2);
                 sum += Math.Pow((klusterz[klusterNum, i].Y - frame.Joints[(JointType)i].Position.Y), 2);
                 sum += Math.Pow((klusterz[klusterNum, i].Z - frame.Joints[(JointType)i].Position.Z), 2);
+            }
+            return sum;
+        }
+
+        /*
+         * klusterDistFromKluster - calculates the difference between the given kluster and a cluster represented as 
+         *      (Xi - Ci)^2 where Xi is a value from the current frame and Ci is the corresponding value for the cluster
+         */
+        public double klusterDistFromKluster(int klusterNum, int oldKlusterNum)
+        {
+            //TODO: assert klusterz has been initialized and frame != null
+            double sum=0.0;
+            for (int i = 0; i < 20; i++)
+            {
+                sum += Math.Pow((klusterz[klusterNum, i].X - oldKlusterz[klusterNum, i].X), 2);
+                sum += Math.Pow((klusterz[klusterNum, i].Y - oldKlusterz[klusterNum, i].Y), 2);
+                sum += Math.Pow((klusterz[klusterNum, i].Z - oldKlusterz[klusterNum, i].Z), 2);
             }
             return sum;
         }
