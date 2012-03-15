@@ -6,6 +6,7 @@ using Microsoft.Kinect;
 using System.Windows;
 using System.Windows.Media.Media3D;
 using System.Windows.Media;
+using System.IO;
 
 namespace KinectTrack
 {
@@ -43,9 +44,109 @@ namespace KinectTrack
             //now with a "Stride," calculate descriptive values and store as local vars
         }
 
-      /*  private Stride(List<DanSkeleton> skelList)
+        public static void writeListOfStridesToFile(List<Stride> sList, String fileName) {
+            //var outFile = File.Create(fileName, 32, FileOptions.None);
+            StringBuilder output = new StringBuilder();
+            foreach (Stride s in sList)
+            {
+                //output.AppendLine(
+                // append a split sequence [NEW SKELETON] or something like that
+                List<DanSkeleton> curSkelList = s.capturedFrames;
+                DanSkeleton currentFrame;
+                SkeletonPoint currentPos;
+                for (int i = 0; i <= curSkelList.Count; i++)
+                {
+                    //for each frame, print out a tab delimited list of values
+                    currentFrame = curSkelList[i];
+                    for (int j = 0; j < 20; j++)
+                    {  //iterate through each joint
+                        currentPos = currentFrame.Joints[(JointType)j].Position;
+                        output.Append(currentPos.X + "\t" + currentPos.Y + "\t" + currentPos.Z + "\t");
+                    }
+                    //add skeleton position too
+                    currentPos = currentFrame.Position;
+                    output.Append(currentPos.X + "\t" + currentPos.Y + "\t" + currentPos.Z + "\t");
+                    output.Append("\n");
+                }
+                output.Append("[STRIDE] \n");
+            }
+            System.IO.File.WriteAllText(fileName, output.ToString()); 
+        }
+
+        public static List<Stride> loadListOfStridesFromFile(String fileName)
         {
-        }  */
+
+            // read all the strides
+            
+            var allLines = new List<String>(System.IO.File.ReadAllLines(fileName));
+
+            var curStrideLines = new List<String>();
+            List<Stride> output = new List<Stride>();
+            foreach (var line in allLines) 
+            {
+                // Iterate throught the output until we find a stride marker
+                if (!line.StartsWith("[STRIDE]"))
+                {
+                    curStrideLines.Add(line);
+                }
+                else
+                {
+                    //build a stride and add it to the output
+                    Stride buildMe;
+                    List<Skeleton> strideList = new List<Skeleton>();
+                    // each line represents one skelelton/frame
+                    foreach (String skelLine in curStrideLines)
+                    {
+                        String[] splitSkelLine = skelLine.Split(new Char[] { '\t' });
+                        double[] posArray = new double[splitSkelLine.Length];
+                        int index = 0;
+                        // convert to doubles
+                        foreach (String s in splitSkelLine)
+                        {
+                            posArray[index] = Convert.ToDouble(s);
+                            index++;
+                        }
+                        // build joints
+                        Joint[] joints4Skel = new Joint[20];
+                        int doubleIndex = 0;
+                        for(int jointIndex = 0; jointIndex < 20; jointIndex++) {
+                            SkeletonPoint p = new SkeletonPoint();
+                            p.X = (float)posArray[doubleIndex];
+                            doubleIndex++;
+                            p.Y = (float)posArray[doubleIndex];
+                            doubleIndex++;
+                            p.Z = (float)posArray[doubleIndex];
+                            doubleIndex++;
+                            joints4Skel[jointIndex] = new Joint();
+                            joints4Skel[jointIndex].Position = p;
+                        }
+                        SkeletonPoint skelPos = new SkeletonPoint();
+                        skelPos.X = (float)posArray[doubleIndex];
+                        doubleIndex++;
+                        skelPos.Y = (float)posArray[doubleIndex];
+                        doubleIndex++;
+                        skelPos.Z = (float)posArray[doubleIndex];
+                        doubleIndex++;
+
+                        DanSkeleton frameSkel = new DanSkeleton(joints4Skel, skelPos);
+                        strideList.Add(frameSkel);
+                    }
+                    buildMe = new Stride(strideList);
+                    output.Add(buildMe);
+                    // clear curStrideLines
+                    curStrideLines.Clear();
+                }
+                
+            }
+
+            return output;
+        }
+
+        public String strideToStats()
+        {
+            //TODO: impelment me
+            return "";
+        }
 
         public static Stride buildStrideFromFile(String fileName)
         {

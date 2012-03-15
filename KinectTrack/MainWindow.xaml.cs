@@ -367,11 +367,12 @@ namespace KinectTrack
             drawDepthFrame = !drawDepthFrame;
         }
 
-        Stride strideAnalizer;
+        List<Stride> allStrides = new List<Stride>();
 
         private void grabSkelList_Click(object sender, RoutedEventArgs e)
         {
-            strideAnalizer = new Stride(skelList);
+            //strideAnalizer = new Stride(skelList);
+            allStrides.Add(new Stride(skelList));
             //strideAnalizer = Stride.buildStrideFromFile(@"..\..\..\training.txt");
             //TODO: this might not be the best place for this but it ought to work:
             SkelListToFile(skelList,0,skelList.Count-1,"\tTest output", @".\training.txt");
@@ -388,54 +389,9 @@ namespace KinectTrack
             */
             // Set up the slider
             skelSlider.Minimum = 0;
-            skelSlider.Maximum = strideAnalizer.numFrames;
+            skelSlider.Maximum = allStrides[allStrides.Count - 1].numFrames; // strideAnalizer.numFrames;
             skelSlider.IsSnapToTickEnabled = true;
 
-            /* THE FOLLOWING IS AN OLD ATTEMPT AT DETECTING STEP CYCLES
-             * IT WORKS. SORT OF.
-            // Find step locations
-            List<double> leftFootPosDiffs = new List<double>();
-            // Get distance between all left foot positions
-            for(int skelIndex = 0; skelIndex < copySkelList.Count - 1; skelIndex++) {
-                Skeleton curSkel = copySkelList[skelIndex];
-                Skeleton nextSkel = copySkelList[skelIndex + 1];
-                double curDist = Utils3D.skelPointDist(curSkel.Joints[JointType.FootLeft].Position
-                    ,nextSkel.Joints[JointType.FootLeft].Position);
-                leftFootPosDiffs.Add(curDist);
-            }
-            //NOTE: this is only a guess at a good value for epsilon
-            double epsilon = .01;
-
-            // Find all step diffs smaller than epsilon (i.e. those likely to be points where the foot is down)
-            List<int> stepFrames = new List<int>();
-            for (int i = 0; i < leftFootPosDiffs.Count; i++)
-            {
-                double curDiff = leftFootPosDiffs[i];
-                if (curDiff < epsilon)
-                {
-                    stepFrames.Add(i);
-                }
-            }
-
-            //Coalesce the stepframes into single frames and ignore outliers (i.e. there must be more than one in a row
-            // for it to be a valid foot down position)
-            List<int> realStepFrames = new List<int>();
-            for (int i = 0; i < stepFrames.Count; i++)
-            {
-                int iStart = i;
-                while (i < stepFrames.Count-1 && stepFrames[i + 1] == (stepFrames[i] + 1))
-                {
-                    i++;
-                }
-                if (Math.Abs(i - iStart) > 1) realStepFrames.Add(iStart);
-            }
-            
-            // Set those skeletons as step skeletons
-            foreach (int frameNumber in realStepFrames)
-            {
-                copySkelList[frameNumber].isStepSkel = true;
-            
-             */
         }
 
         private void skelSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -446,7 +402,9 @@ namespace KinectTrack
             skelViewport.Children.Clear();
             //renderSkeleton(copySkelList[frameNumber.Clamp(0,copySkelList.Count-1)]);
 
-            strideAnalizer.drawFrameToViewport(frameNumber.Clamp(0, strideAnalizer.numFrames - 1), skelViewport);
+            //strideAnalizer.drawFrameToViewport(frameNumber.Clamp(0, strideAnalizer.numFrames - 1), skelViewport);
+            Stride mostRecent = allStrides[allStrides.Count - 1];
+            mostRecent.drawFrameToViewport(frameNumber.Clamp(0, mostRecent.numFrames - 1), skelViewport);
         }
 
 
@@ -536,6 +494,11 @@ namespace KinectTrack
         private void DEBUG_TextChanged(object sender, TextChangedEventArgs e)
         {
 
+        }
+
+        private void clearButton_Click(object sender, RoutedEventArgs e)
+        {
+            skelList.Clear();
         }
     }
 }
