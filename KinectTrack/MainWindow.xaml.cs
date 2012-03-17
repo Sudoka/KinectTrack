@@ -525,6 +525,7 @@ namespace KinectTrack
             List<Stride> fileStrides = new List<Stride>();
             fileStrides = Stride.loadListOfStridesFromFile("danCrazyArms.txt");
             Stride.writeListOfStridesToFile(fileStrides, "danCrazyArms.txt");
+            var blob = Stride.listOfStridesToARFF(fileStrides);
             /*for (int i = 0; i < fileStrides.Count; i++)
             {
                 masterSkelList.Add(fileStrides[i].rawSkelFromStride());

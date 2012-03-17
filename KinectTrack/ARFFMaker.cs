@@ -20,7 +20,7 @@ namespace KinectTrack
             {
                 for(int i = 0; i < 180; i++) 
                 {
-                    pNames.Add(name + i);
+                    pNames.Add(name + "|" +  i);
                 }
             }
             else 
@@ -46,15 +46,14 @@ namespace KinectTrack
                 {
                     if (name.StartsWith("distance")) 
                     {
-                        if(name.EndsWith("0")) {
-                            for(int i = 0; i < 180; i++) {
-                                sb.Append(
-                                    ((double[])(s.GetType().GetProperty(name).GetValue(s, null)))[i]);
-                            }
-                        }
-                        else {
-                            continue;
-                        }   
+                       
+                        String[] splitd = name.Split('|');
+
+                        
+                       
+                        var test = s.GetType().GetProperty(splitd[0]).GetValue(s,null);
+                        double[] array = (double[])(s.GetType().GetProperty(splitd[0]).GetValue(s, null));
+                        sb.Append(array[Convert.ToInt32(splitd[1])]);
                     }
                     var value = s.GetType().GetProperty(name).GetValue(s, null);
                     sb.Append(value);
