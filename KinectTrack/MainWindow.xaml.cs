@@ -173,12 +173,12 @@ namespace KinectTrack
                     normSkelList.Add(normSkel);  //parallel list of normalized skeletons (smaller)
 
                     // Print some basic stats
-                    double ankleToKneeRight = jointDistance(firstSkel.Joints[JointType.AnkleRight], firstSkel.Joints[JointType.KneeRight]); 
+                    double ankleToKneeRight = jointDistance(firstSkel.Joints[JointType.AnkleRight], firstSkel.Joints[JointType.KneeRight]);
                     double ankleToKneeLeft = jointDistance(firstSkel.Joints[JointType.AnkleLeft], firstSkel.Joints[JointType.KneeLeft]);
                     // Stupid .NET uses a different syntax for format strings for no discernable reason
                     String s = String.Format("Ankle to right knee dist = {0,5:f} Ankle to left knee dist = {1,5:f} \n", ankleToKneeRight, ankleToKneeLeft);
 
-                    double kneeToHipRight = jointDistance(firstSkel.Joints[JointType.KneeRight], firstSkel.Joints[JointType.HipRight]); 
+                    double kneeToHipRight = jointDistance(firstSkel.Joints[JointType.KneeRight], firstSkel.Joints[JointType.HipRight]);
                     double kneeToHipLeft = jointDistance(firstSkel.Joints[JointType.KneeLeft], firstSkel.Joints[JointType.HipLeft]);
                     String s2 = String.Format("Knee to Hip right = {0,5:f} Knee to Hip left = {1,5:f} \n", kneeToHipRight, ankleToKneeLeft);
 
@@ -187,6 +187,10 @@ namespace KinectTrack
                     string s3 = String.Format("Average of ankle to knee is {0,5:f}", rkneelist.average());
                     //NOTE: Stringbuilder needed?
                     skelInfo.Text = s + s2 + s3;
+                }
+                else
+                {
+                    skelDetected = false;
                 }
             }
 
@@ -375,7 +379,7 @@ namespace KinectTrack
             allStrides.Add(new Stride(skelList));
             //strideAnalizer = Stride.buildStrideFromFile(@"..\..\..\training.txt");
             //TODO: this might not be the best place for this but it ought to work:
-            SkelListToFile(skelList,0,skelList.Count-1,"\tTest output", @".\training.txt");
+            //SkelListToFile(skelList,0,skelList.Count-1,"\tTest output", @".\training.txt");
             //SkelListToFile(skelList,0,skelList.Count-1,"\tTest output", @"C:\Users\DCashman\Documents\UCSD\Courses\CSE227\KinectTrack\training.txt");
             //TODO: add null checks and stuff here
             /*
@@ -499,6 +503,35 @@ namespace KinectTrack
         private void clearButton_Click(object sender, RoutedEventArgs e)
         {
             skelList.Clear();
+        }
+
+        private void printButton_Click(object sender, RoutedEventArgs e)
+        {
+            Stride.writeListOfStridesToFile(allStrides, "rawStrides.txt");
+            List<List<Skeleton>> masterSkelList = new List<List<Skeleton>>();
+            for (int i = 0; i < allStrides.Count; i++)
+            {
+                masterSkelList.Add(allStrides[i].rawSkelFromStride());
+            }
+            skelListStats s = new skelListStats(masterSkelList, true, "klusters.txt");
+            
+
+        }
+
+        private void inputButton_Click(object sender, RoutedEventArgs e)
+        {
+            //Stride.writeListOfStridesToFile(allStrides, "rawStrides.txt");
+            List<List<Skeleton>> masterSkelList = new List<List<Skeleton>>();
+            List<Stride> fileStrides = new List<Stride>();
+            fileStrides = Stride.loadListOfStridesFromFile("rawStrides.txt");
+            Stride.writeListOfStridesToFile(fileStrides, "rawStridesCopy.txt");
+            for (int i = 0; i < fileStrides.Count; i++)
+            {
+                masterSkelList.Add(fileStrides[i].rawSkelFromStride());
+            }
+            skelListStats s = new skelListStats(masterSkelList, false, "klusters.txt");
+            
+
         }
     }
 }

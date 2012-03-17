@@ -63,6 +63,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ARFFMaker.cs" />
     <Compile Include="RelDir.cs" />
     <Compile Include="skelListStats.cs" />
     <Compile Include="Utils3D.cs" />

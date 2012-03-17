@@ -20,11 +20,12 @@ namespace KinectTrack
         private Random rando = new Random();
         private const double KlusterTrainingValue = .001;  //TODO: alter this?  this determines when clusters stop moving
 
-        public skelListStats(List<List<Skeleton>> closet, Boolean training)
+        public skelListStats(List<List<Skeleton>> closet, Boolean training, String fileName)
         {
             this.closet = closet;  //should work since it won't be garbage-collected with a reference...  TODO: right?
+            klusterFile = fileName;
             if (training)
-            {
+            {           
                 calculateExtrema();  //find the bounds for the random init of the clusters
                 initKlusters();      //initialize clusters to starting value
                 trainKlusters();     //use k-means clustering to get final cluster values
@@ -167,14 +168,18 @@ namespace KinectTrack
                 //for each training sequence
                 for(int i = 0; i < discreteFrames.Count; i++){
                     //for each frame in each training sequence
-                    for( int j = 0; j < discreteFrames[j].Count; j++){
+                    for( int j = 0; j < discreteFrames[i].Count; j++){
                          buckets[discreteFrames[i][j]].Add(closet[i][j]);
                     }
                 }
                 //go through each cluster to assign old cluster and new cluster
                 for(int i = 0; i < numKlusters; i++){
                     //add all of the coordinates up from each frame assigned to this cluster
-                    int numInKluster=buckets[i].Count;
+                    int numInKluster=buckets[i].Count;//check this value
+                    if (numInKluster == null || numInKluster < 1)
+                    {
+                        continue;
+                    }
                     SkeletonPoint[] tempFrame = new SkeletonPoint[20];
                     for(int j = 0; j < numInKluster; j++){
                         Skeleton currentSkel = buckets[i][j];
@@ -295,7 +300,7 @@ namespace KinectTrack
                 discreteFrames.Add(new List<int>());
                 for (int j = 0; j < closet[i].Count; j++)
                 {
-                    discreteFrames[i][j] = frameToKluster(closet[i][j]);
+                    discreteFrames[i].Add(frameToKluster(closet[i][j]));   //TODO: check change from discreteFrames[i][j] did not ruin
                 }
             }
             return;
@@ -308,7 +313,7 @@ namespace KinectTrack
         public int frameToKluster(Skeleton skelly)
         {
             int assignedKluster=-1;
-            double minimum=0.0;
+            double minimum = frameDistFromKluster(0, skelly);
             //iterate over all klusters and return the one with the minimum error
             for (int i = 0; i < numKlusters; i++)
             {
