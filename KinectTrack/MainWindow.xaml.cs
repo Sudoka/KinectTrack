@@ -507,14 +507,14 @@ namespace KinectTrack
 
         private void printButton_Click(object sender, RoutedEventArgs e)
         {
-            Stride.writeListOfStridesToFile(allStrides, "rawStrides.txt");
-            List<List<Skeleton>> masterSkelList = new List<List<Skeleton>>();
-            for (int i = 0; i < allStrides.Count; i++)
+            Stride.writeListOfStridesToFile(allStrides, "danCrazyArms.txt");
+           /* List<List<Skeleton>> masterSkelList = new List<List<Skeleton>>();
+           for (int i = 0; i < allStrides.Count; i++)
             {
                 masterSkelList.Add(allStrides[i].rawSkelFromStride());
             }
             skelListStats s = new skelListStats(masterSkelList, true, "klusters.txt");
-            
+            */
 
         }
 
@@ -523,13 +523,13 @@ namespace KinectTrack
             //Stride.writeListOfStridesToFile(allStrides, "rawStrides.txt");
             List<List<Skeleton>> masterSkelList = new List<List<Skeleton>>();
             List<Stride> fileStrides = new List<Stride>();
-            fileStrides = Stride.loadListOfStridesFromFile("rawStrides.txt");
-            Stride.writeListOfStridesToFile(fileStrides, "rawStridesCopy.txt");
-            for (int i = 0; i < fileStrides.Count; i++)
+            fileStrides = Stride.loadListOfStridesFromFile("danCrazyArms.txt");
+            Stride.writeListOfStridesToFile(fileStrides, "danCrazyArms.txt");
+            /*for (int i = 0; i < fileStrides.Count; i++)
             {
                 masterSkelList.Add(fileStrides[i].rawSkelFromStride());
             }
-            skelListStats s = new skelListStats(masterSkelList, false, "klusters.txt");
+            skelListStats s = new skelListStats(masterSkelList, false, "klusters.txt"); */
             
 
         }

@@ -111,7 +111,7 @@ namespace KinectTrack
                 }
                 output.Append("[STRIDE] \n");
             }
-            System.IO.File.WriteAllText(fileName, output.ToString()); 
+            System.IO.File.AppendAllText(fileName, output.ToString()); 
         }
 
         public static List<Stride> loadListOfStridesFromFile(String fileName)
@@ -174,7 +174,7 @@ namespace KinectTrack
                         DanSkeleton frameSkel = new DanSkeleton(joints4Skel, skelPos);
                         strideList.Add(frameSkel);
                     }
-                    buildMe = new Stride(strideList);
+                    buildMe = new Stride(strideList, false);
                     output.Add(buildMe);
                     // clear curStrideLines
                     curStrideLines.Clear();
