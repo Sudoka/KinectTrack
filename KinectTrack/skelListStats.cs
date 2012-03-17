@@ -9,35 +9,40 @@ namespace KinectTrack
     class skelListStats
     {
         public float maxX, maxY, maxZ, minX, minY, minZ;
-        private const int numKlusters = 128;  //try starting with 128 clusters?
-        private SkeletonPoint[,] klusterz= new SkeletonPoint[numKlusters,20];  //ignoring skeleton position
-        private SkeletonPoint[,] oldKlusterz = new SkeletonPoint[numKlusters, 20];  //use this to calculate difference between skeleton iterations
+        private int numKlusters;  //try starting with 128 clusters?
+        private SkeletonPoint[,] klusterz;  //ignoring skeleton position
+        private SkeletonPoint[,] oldKlusterz;  //use this to calculate difference between skeleton iterations
         private List<List<int>> discreteFrames;  //a list of each "walking" sequence represented as a sequence of discrete klusters
         private List<List<Skeleton>> closet;
-        private String klusterFile="klusters.txt";
-        private String trainingAsKlusters="trainingAsKlusters.txt";
-        private String classifyFile = "klustersToBeClassified.txt";
+        private String klusterFile;//="klusters.txt";
+        private String trainingAsKlusters;//="trainingAsKlusters.txt";
+        private String classifyFile;// = "klustersToBeClassified.txt";
         private Random rando = new Random();
         private const double KlusterTrainingValue = .001;  //TODO: alter this?  this determines when clusters stop moving
 
-        public skelListStats(List<List<Skeleton>> closet, Boolean training, String fileName)
+        public skelListStats(List<List<Skeleton>> closet, Boolean training, int numKlusters, String klusterFile, String trainingAsKlustersFile)
         {
             this.closet = closet;  //should work since it won't be garbage-collected with a reference...  TODO: right?
-            klusterFile = fileName;
+            this.klusterFile = klusterFile + numKlusters + ".txt";
+            this.trainingAsKlusters = trainingAsKlustersFile + numKlusters + ".txt";
+            this.classifyFile = "Classified" + numKlusters + ".txt";
+            this.numKlusters = numKlusters;
+            this.klusterz= new SkeletonPoint[numKlusters,20];  //ignoring skeleton position
+            this.oldKlusterz = new SkeletonPoint[numKlusters, 20];  //use this to calculate difference between skeleton iterations
             if (training)
             {           
                 calculateExtrema();  //find the bounds for the random init of the clusters
                 initKlusters();      //initialize clusters to starting value
                 trainKlusters();     //use k-means clustering to get final cluster values
-                printKlusters(klusterFile);     //print the trained clusters to a file so they can be used later for classifying
+                printKlusters(this.klusterFile);     //print the trained clusters to a file so they can be used later for classifying
                 assignAllToKlusters();
-                printDataAsKlusters(trainingAsKlusters);  //TODO: print the actual data as represented by clusters
+                printDataAsKlusters(this.trainingAsKlusters);  //TODO: print the actual data as represented by clusters
             }
             else
             {   //not training just need to turn data into clusters
-                initKlusters(klusterFile);
+                initKlusters(this.klusterFile);
                 assignAllToKlusters();
-                printDataAsKlusters(classifyFile);
+                printDataAsKlusters(this.classifyFile);
             }
         }
 
@@ -117,16 +122,20 @@ namespace KinectTrack
         {
             //grab the clusters from the given file of clusters
             //TODO: assert numClusters from file matches number desired here
-
             int lineCount = 0;
             List<List<SkeletonPoint>> klustersFromFile = new List<List<SkeletonPoint>>();
 
             String[] lines = System.IO.File.ReadAllLines(fileName);
-            foreach (String line in lines)
+            if (numKlusters != lines.Length-1)    //TODO: DEBUG: make sure this -1 thing is right
+            {
+                return;  //TODO: get rid of this maybe?
+            }
+            //foreach (String line in lines)
+            for(int line = 0; line < (lines.Length - 1); line++)  // length -1 to get rid of ""
             {
                
                 klustersFromFile.Add(new List<SkeletonPoint>());
-                String[] splitLine = line.Split(new Char[] { '\t' });
+                String[] splitLine = lines[line].Split(new Char[] { '\t' });
                 Queue<String> lineStack = new Queue<string>(splitLine);
                 // Joints are stored in xyz order in the order they are defined in JointType
                 
@@ -143,7 +152,7 @@ namespace KinectTrack
                 lineCount++;
                 if (lineCount >= numKlusters)
                 {
-                    break;  //TODO: remove this and add an assert above
+                    return;  //TODO: remove this and add an assert above
                 }
             }
 
@@ -278,7 +287,7 @@ namespace KinectTrack
                     output += "\n";
                 }
                 //output += "###"+note+"\n";//### will denote the note
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(fileName, true))  //TDO: not sure what the @ does
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(fileName, false))  //TDO: not sure what the @ does
                 {
                     file.WriteLine(output);
                 }
@@ -312,7 +321,7 @@ namespace KinectTrack
          */
         public int frameToKluster(Skeleton skelly)
         {
-            int assignedKluster=-1;
+            int assignedKluster=0;
             double minimum = frameDistFromKluster(0, skelly);
             //iterate over all klusters and return the one with the minimum error
             for (int i = 0; i < numKlusters; i++)
