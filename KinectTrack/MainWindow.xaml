@@ -33,5 +33,6 @@
         <TextBox Height="171" HorizontalAlignment="Left" Margin="793,321,0,0" Name="DEBUG" VerticalAlignment="Top" Width="240" TextChanged="DEBUG_TextChanged" />
         <Button Content="Clear Skeleton List" Height="23" HorizontalAlignment="Left" Margin="12,292,0,0" Name="clearButton" VerticalAlignment="Top" Width="140" Click="clearButton_Click" />
         <Button Content="Print Training" Height="23" HorizontalAlignment="Left" Margin="266,292,0,0" Name="printButton" VerticalAlignment="Top" Width="91" Click="printButton_Click" />
+        <Button Content="InputFromFile" Height="23" HorizontalAlignment="Left" Margin="501,292,0,0" Name="inputButton" VerticalAlignment="Top" Width="75" Click="inputButton_Click" />
     </Grid>
 </Window>

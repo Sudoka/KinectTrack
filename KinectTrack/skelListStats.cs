@@ -20,11 +20,12 @@ namespace KinectTrack
         private Random rando = new Random();
         private const double KlusterTrainingValue = .001;  //TODO: alter this?  this determines when clusters stop moving
 
-        public skelListStats(List<List<Skeleton>> closet, Boolean training)
+        public skelListStats(List<List<Skeleton>> closet, Boolean training, String fileName)
         {
             this.closet = closet;  //should work since it won't be garbage-collected with a reference...  TODO: right?
+            klusterFile = fileName;
             if (training)
-            {
+            {           
                 calculateExtrema();  //find the bounds for the random init of the clusters
                 initKlusters();      //initialize clusters to starting value
                 trainKlusters();     //use k-means clustering to get final cluster values

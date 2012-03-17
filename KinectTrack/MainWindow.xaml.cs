@@ -513,7 +513,23 @@ namespace KinectTrack
             {
                 masterSkelList.Add(allStrides[i].rawSkelFromStride());
             }
-            skelListStats s = new skelListStats(masterSkelList, true);
+            skelListStats s = new skelListStats(masterSkelList, true, "klusters.txt");
+            
+
+        }
+
+        private void inputButton_Click(object sender, RoutedEventArgs e)
+        {
+            //Stride.writeListOfStridesToFile(allStrides, "rawStrides.txt");
+            List<List<Skeleton>> masterSkelList = new List<List<Skeleton>>();
+            List<Stride> fileStrides = new List<Stride>();
+            fileStrides = Stride.loadListOfStridesFromFile("rawStrides.txt");
+            Stride.writeListOfStridesToFile(fileStrides, "rawStridesCopy.txt");
+            for (int i = 0; i < fileStrides.Count; i++)
+            {
+                masterSkelList.Add(fileStrides[i].rawSkelFromStride());
+            }
+            skelListStats s = new skelListStats(masterSkelList, false, "klusters.txt");
             
 
         }

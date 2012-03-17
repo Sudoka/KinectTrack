@@ -107,12 +107,14 @@ namespace KinectTrack
                     // each line represents one skelelton/frame
                     foreach (String skelLine in curStrideLines)
                     {
-                        String[] splitSkelLine = skelLine.Split(new Char[] { '\t' });
+                        String strippedSkelLine = skelLine.Replace(" ", "");
+                        String[] splitSkelLine = strippedSkelLine.Split(new Char[] { '\t' });
                         double[] posArray = new double[splitSkelLine.Length];
                         int index = 0;
                         // convert to doubles
                         foreach (String s in splitSkelLine)
                         {
+                            if(s.Equals("")) break;
                             posArray[index] = Convert.ToDouble(s);
                             index++;
                         }
