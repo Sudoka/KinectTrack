@@ -20,7 +20,7 @@ namespace KinectTrack
             {
                 for(int i = 0; i < 180; i++) 
                 {
-                    pNames.Add(name + "|" +  i);
+                    pNames.Add(name + "|" + i);
                 }
             }
             else 
@@ -44,20 +44,27 @@ namespace KinectTrack
             {
                 foreach (String name in pNames)
                 {
-                    if (name.StartsWith("distance")) 
+                    if (name.StartsWith("distance"))
                     {
-                       
-                        String[] splitd = name.Split('|');
+                        String[] splitName = name.Split('|');
+                        switch (splitName[0])
+                        {
+                            case "distanceBetweenAllPointsAvg":
+                                sb.Append(s.distanceBetweenAllPointsAvg[Convert.ToInt32(splitName[1])]);
+                                sb.Append(", ");
+                                break;
+                            default:
+                                break;
+                        }
 
-                        
-                       
-                        var test = s.GetType().GetProperty(splitd[0]).GetValue(s,null);
-                        double[] array = (double[])(s.GetType().GetProperty(splitd[0]).GetValue(s, null));
-                        sb.Append(array[Convert.ToInt32(splitd[1])]);
+
                     }
-                    var value = s.GetType().GetProperty(name).GetValue(s, null);
-                    sb.Append(value);
-                    sb.Append(", ");
+                    else
+                    {
+                        var value = s.GetType().GetProperty(name).GetValue(s, null);
+                        sb.Append(value);
+                        sb.Append(", ");
+                    }
                 }
                 sb.Append("\n");
             }
