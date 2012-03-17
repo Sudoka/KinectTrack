@@ -18,7 +18,7 @@ namespace KinectTrack
         {
             if(name.StartsWith("distance"))
             {
-                for(int i = 0; i < 180; i++) 
+                for(int i = 0; i < 190; i++) 
                 {
                     pNames.Add(name + "|" + i);
                 }
@@ -29,9 +29,11 @@ namespace KinectTrack
             }
         }
 
-        public String getARFF(List<Stride> strideList)
+        public String getARFF(List<Stride> strideList, String relationName)
         {
             StringBuilder sb = new StringBuilder();
+            sb.Append("@relation " + relationName);
+            sb.Append("\n");
             foreach (String name in pNames)
             {
                 sb.Append("@attribute " + name + " numeric");

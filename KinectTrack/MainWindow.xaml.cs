@@ -525,13 +525,26 @@ namespace KinectTrack
             List<Stride> fileStrides = new List<Stride>();
             fileStrides = Stride.loadListOfStridesFromFile("danCrazyArms.txt");
             Stride.writeListOfStridesToFile(fileStrides, "danCrazyArms.txt");
-            var blob = Stride.listOfStridesToARFF(fileStrides);
+            //var blob = Stride.listOfStridesToARFF(fileStrides);
             /*for (int i = 0; i < fileStrides.Count; i++)
             {
                 masterSkelList.Add(fileStrides[i].rawSkelFromStride());
             }
             skelListStats s = new skelListStats(masterSkelList, false, "klusters.txt"); */
             
+
+        }
+
+        private void ARFFButton_Click(object sender, RoutedEventArgs e)
+        {
+            String path = "danNormal.txt";
+            List<Stride> slist = Stride.loadListOfStridesFromFile(path);
+
+            String arffstr = Stride.listOfStridesToARFF(slist, "danNormal");
+            arffBox.Text = arffstr;
+            System.IO.File.WriteAllText("danNormArff.arff", arffstr);
+          
+
 
         }
     }

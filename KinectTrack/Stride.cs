@@ -48,7 +48,7 @@ namespace KinectTrack
             capturedFrames[lastFrame].isStepSkel = true;
             //now with a "Stride," calculate descriptive values and store as local vars
         }
-        public static String listOfStridesToARFF(List<Stride> strideList)
+        public static String listOfStridesToARFF(List<Stride> strideList, String relationName)
         {
             ARFFMaker maker = new ARFFMaker();
             maker.addProp("leftFootAngleAvg");
@@ -74,7 +74,7 @@ namespace KinectTrack
             // max foot elevation
 
             //addAttr(arffStr, "StrideLength", "numeric");
-            return maker.getARFF(strideList);
+            return maker.getARFF(strideList, relationName);
         }
             
         /*
@@ -399,7 +399,7 @@ namespace KinectTrack
         {
             // for every pair of points, calculate the distance between them
             var allDists = new List<List<double>>();
-            int numDists = 180; // Dan says this is right 
+            int numDists = 190; // Dan says this is right // IS 190 right?
 
             for (int i = firstFrame; i < lastFrame + 1; i++)
             {
@@ -410,13 +410,15 @@ namespace KinectTrack
                 {
                     for (int k = j + 1; k < (Enum.GetNames(typeof(JointType))).Length; k++)
                     {
-                        double jointDist = Utils3D.jointDist(curSkel.Joints[(JointType)i], curSkel.Joints[(JointType)k]);
+                        double jointDist = Utils3D.jointDist(curSkel.Joints[(JointType)j], curSkel.Joints[(JointType)k]);
                         curSkelDists.Add(jointDist);
 
                     }
                 }
                 allDists.Add(curSkelDists);
-                if (allDists.Count != numDists) throw new Exception("You are wrong, dan!");
+                var what = allDists.Count;
+                var wha = curSkelDists.Count;
+                if (curSkelDists.Count != numDists) throw new Exception("You are wrong, dan!");
             }
             return allDists;
         }
@@ -424,7 +426,7 @@ namespace KinectTrack
         {
             get
             {
-                int numDists = 180; // Dan says this is right 
+                int numDists = 190; // Dan says this is right 
                 var allDists = this.getAllDistLists();
                 var outList = new List<double>();
                 for (int i = 0; i < numDists; i++)
@@ -445,7 +447,7 @@ namespace KinectTrack
         {
             get
             {
-                int numDists = 180; // Dan says this is right 
+                int numDists = 190; // Dan says this is right 
                 var allDists = this.getAllDistLists();
                 var outList = new List<double>();
                 for (int i = 0; i < numDists; i++)
@@ -466,7 +468,7 @@ namespace KinectTrack
         {
             get
             {
-                int numDists = 180; // Dan says this is right 
+                int numDists = 190; // Dan says this is right 
                 var allDists = this.getAllDistLists();
                 var outList = new List<double>();
                 for (int i = 0; i < numDists; i++)
@@ -523,7 +525,9 @@ namespace KinectTrack
             var startEnum = foot == RelDir.L ? 13 : 17;
 
             var aList = new List<double>();
-            for (int i = firstFrame; i < lastFrame + 1; i++)
+
+            var lframei = lastFrame <= firstFrame ? capturedFrames.Count : lastFrame;
+            for (int i = firstFrame; i < lframei; i++)
             {
                 DanSkeleton curSkel = capturedFrames[i];
                 aList.Add(angleBetweenJointPairs(Tuple.Create(curSkel.Joints[(JointType) startEnum], curSkel.Joints[(JointType) startEnum+1]),
