@@ -523,14 +523,20 @@ namespace KinectTrack
             //Stride.writeListOfStridesToFile(allStrides, "rawStrides.txt");
             List<List<Skeleton>> masterSkelList = new List<List<Skeleton>>();
             List<Stride> fileStrides = new List<Stride>();
-            fileStrides = Stride.loadListOfStridesFromFile("danCrazyArms.txt");
-            Stride.writeListOfStridesToFile(fileStrides, "danCrazyArms.txt");
+
+            fileStrides = Stride.loadListOfStridesFromFile("combinedData.txt");
+            //Stride.writeListOfStridesToFile(fileStrides, "combinedDataCopy.txt");
             //var blob = Stride.listOfStridesToARFF(fileStrides);
-            /*for (int i = 0; i < fileStrides.Count; i++)
+            for (int i = 0; i < fileStrides.Count; i++)
             {
                 masterSkelList.Add(fileStrides[i].rawSkelFromStride());
             }
-            skelListStats s = new skelListStats(masterSkelList, false, "klusters.txt"); */
+            int fourPower=1;
+            for (int i = 1; i <= 6; i++)
+            {
+                fourPower *= 4;
+                skelListStats s = new skelListStats(masterSkelList, true, fourPower, "klusters", "klustersAsTraining");
+            }
             
 
         }
