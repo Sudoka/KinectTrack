@@ -28,14 +28,17 @@ namespace KinectTrack
         private double[] anglesStandardDeviations = new double[20];  //TODO: it's not 20
         private double[] anglesAvg = new double[20];  //TODO: not 20, stupid
         */
-        public Stride(List<Skeleton> rawSkeletonList)
+        public Stride(List<Skeleton> rawSkeletonList) : this(rawSkeletonList, true)
+        {
+        }
+        public Stride(List<Skeleton> rawSkeletonList, bool doRotate)
         {
 
             capturedFrames = convertToDanFromSkel(rawSkeletonList);
             this.numFrames = capturedFrames.Count;
 
             //rotateSkelList capturedFrames so that it is aligned with x-axis direction of movement
-            rotateSkelList(this.capturedFrames);
+            if(doRotate) rotateSkelList(this.capturedFrames);
             //use foot crossing function to determine actual stride start and end (save as firstFrame and lastFrame)
             this.getStridePositions();
             //TODO: sanitize/add checks
@@ -43,7 +46,35 @@ namespace KinectTrack
             capturedFrames[lastFrame].isStepSkel = true;
             //now with a "Stride," calculate descriptive values and store as local vars
         }
+        public static String listOfStridesToARFF(List<Stride> strideList)
+        {
+            ARFFMaker maker = new ARFFMaker();
+            maker.addProp("leftFootAngleAvg");
+            maker.addProp("leftFootAngleMax");
+            maker.addProp("leftFootAngleMin");
 
+            maker.addProp("rightFootAngleAvg");
+            maker.addProp("rightFootAngleMax");
+            maker.addProp("rightFootAngleMin");
+
+            maker.addProp("maxHeadHeightMeters");
+            maker.addProp("minHeadHeightMeters");
+
+            maker.addProp("strideLengthMeters");
+
+            maker.addProp("widthBetweenFeetAvg");
+
+            maker.addProp("distanceBetweenAllPointsAvg");
+
+
+            // TODO: figure out which 
+            // stride length
+            // max foot elevation
+
+            //addAttr(arffStr, "StrideLength", "numeric");
+            return maker.getARFF(strideList);
+        }
+            
         public static void writeListOfStridesToFile(List<Stride> sList, String fileName) {
             //var outFile = File.Create(fileName, 32, FileOptions.None);
             StringBuilder output = new StringBuilder();
