@@ -18,6 +18,7 @@ namespace KinectTrack
         private int firstFrame;  //first frame of stride as determined by alg
         private int lastFrame;  //last frame of "stride" as determiend by alg
         private int midFrame;
+        private List<Skeleton> rawSkelList;
         
        
         /*
@@ -32,6 +33,7 @@ namespace KinectTrack
         {
 
             capturedFrames = convertToDanFromSkel(rawSkeletonList);
+            rawSkelList = rawSkeletonList;
             this.numFrames = capturedFrames.Count;
 
             //rotateSkelList capturedFrames so that it is aligned with x-axis direction of movement
@@ -44,6 +46,14 @@ namespace KinectTrack
             //now with a "Stride," calculate descriptive values and store as local vars
         }
 
+        /*
+         * rawSkelFromStride - gets the underlying skelton list 
+         */
+        public List<Skeleton> rawSkelFromStride()
+        {
+            return rawSkelList;
+        }
+
         public static void writeListOfStridesToFile(List<Stride> sList, String fileName) {
             //var outFile = File.Create(fileName, 32, FileOptions.None);
             StringBuilder output = new StringBuilder();
@@ -54,7 +64,7 @@ namespace KinectTrack
                 List<DanSkeleton> curSkelList = s.capturedFrames;
                 DanSkeleton currentFrame;
                 SkeletonPoint currentPos;
-                for (int i = 0; i <= curSkelList.Count; i++)
+                for (int i = 0; i < curSkelList.Count; i++)  //TODO check that this in fact should not be <=
                 {
                     //for each frame, print out a tab delimited list of values
                     currentFrame = curSkelList[i];
