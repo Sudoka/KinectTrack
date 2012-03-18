@@ -507,7 +507,7 @@ namespace KinectTrack
 
         private void printButton_Click(object sender, RoutedEventArgs e)
         {
-            Stride.writeListOfStridesToFile(allStrides, "danCrazyArms.txt");
+            Stride.writeListOfStridesToFile(allStrides, "classifyPaulCrazy.txt");
            /* List<List<Skeleton>> masterSkelList = new List<List<Skeleton>>();
            for (int i = 0; i < allStrides.Count; i++)
             {
@@ -543,15 +543,62 @@ namespace KinectTrack
 
         private void ARFFButton_Click(object sender, RoutedEventArgs e)
         {
-            String path = "danNormal.txt";
+            String path = "combinedData.txt";
             List<Stride> slist = Stride.loadListOfStridesFromFile(path);
 
-            String arffstr = Stride.listOfStridesToARFF(slist, "danNormal");
+            String arffstr = Stride.listOfStridesToARFF(slist, "allData");
             arffBox.Text = arffstr;
-            System.IO.File.WriteAllText("danNormArff.arff", arffstr);
+            System.IO.File.WriteAllText("allData.arff", arffstr);
           
 
 
+        }
+
+        private void svmButton_Click(object sender, RoutedEventArgs e)
+        {
+            //String[] paths = { "paulNormal.txt", "danNormal.txt", "paulCrazyLegs.txt", "danCrazyArms.txt" };
+            String[] paths = { "ptest.txt" };
+            Dictionary<String, List<Stride>> listDict = new Dictionary<string, List<Stride>>();
+            // Load the strides
+            foreach(String path in paths)
+            {
+                listDict.Add(path,
+                    Stride.loadListOfStridesFromFile(path));
+            }
+
+            Console.WriteLine("loaded Strides");
+            // Transform the lists of strides into the svm format with and without prefix
+            Dictionary<String, String> path2svm = new Dictionary<string, string>();
+            foreach (KeyValuePair<String, List<Stride>> kvp in listDict)
+            {
+                String svmStr1 = Stride.listOfStridesToSVM(kvp.Value, "+1");
+                String svmStr2 = Stride.listOfStridesToSVM(kvp.Value, "-1");
+                path2svm.Add(kvp.Key + "+", svmStr1);
+                path2svm.Add(kvp.Key + "-", svmStr2);
+                Console.WriteLine("toSVM!");
+            }
+            
+
+            // build the 4 output files
+            foreach(String path in paths)
+            {
+                String outPath = path + "out.txt";
+                String output = "";
+
+                foreach (String path2 in paths)
+                {
+                    if (path == path2)
+                    {
+                        output += path2svm[path2 + "+"];
+                    }
+                    else
+                    {
+                        output += path2svm[path2 + "-"];
+                    }
+                }
+                System.IO.File.WriteAllText(outPath, output);
+                Console.WriteLine("didfile " + outPath);
+            }
         }
     }
 }

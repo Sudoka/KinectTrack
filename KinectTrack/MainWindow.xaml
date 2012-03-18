@@ -36,5 +36,6 @@
         <Button Content="InputFromFile" Height="23" HorizontalAlignment="Left" Margin="501,292,0,0" Name="inputButton" VerticalAlignment="Top" Width="75" Click="inputButton_Click" />
         <Button Content="Convert Stride File to ARFF" Height="23" HorizontalAlignment="Left" Margin="1034,292,0,0" Name="ARFFButton" VerticalAlignment="Top" Width="154" Click="ARFFButton_Click" />
         <TextBox Height="192" HorizontalAlignment="Left" Margin="1039,321,0,0" Name="arffBox" VerticalAlignment="Top" Width="276" />
+        <Button Content="Make SVM Files" Height="147" HorizontalAlignment="Left" Margin="1028,60,0,0" Name="svmButton" VerticalAlignment="Top" Width="144" Click="svmButton_Click" />
     </Grid>
 </Window>

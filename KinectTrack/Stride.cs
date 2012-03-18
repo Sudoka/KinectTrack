@@ -76,7 +76,71 @@ namespace KinectTrack
             //addAttr(arffStr, "StrideLength", "numeric");
             return maker.getARFF(strideList, relationName);
         }
-            
+
+        internal static string listOfStridesToSVM(List<Stride> list, string prefix)
+        {
+            var props = new List<String>();
+            //props.Add("leftFootAngleAvg");
+            props.Add("leftFootAngleMax");
+            props.Add("leftFootAngleMin");
+
+            props.Add("maxLFootHeight");
+            props.Add("maxRFootHeight");
+
+            props.Add("strideMetersPerSecond");
+
+            //props.Add("rightFootAngleAvg");
+            props.Add("rightFootAngleMax");
+            props.Add("rightFootAngleMin");
+
+            props.Add("maxHeadHeightMeters");
+            props.Add("minHeadHeightMeters");
+
+            props.Add("strideLengthMeters");
+
+            props.Add("widthBetweenFeetAvg");
+            props.Add("distanceBetweenAllPointsAvg");
+
+            var sb = new StringBuilder();
+            foreach (Stride s in list)
+            {
+                sb.Append(prefix + " ");
+                int i = 1;
+                foreach (String pName in props)
+                {
+                    if (pName.StartsWith("distance"))
+                    {
+                        double[] dists = s.distanceBetweenAllPointsAvg;
+                        for (int j = 0; j < 190; j++)
+                        {
+                            switch (pName)
+                            {
+                                case "distanceBetweenAllPointsAvg":
+                                    sb.Append(i + ":" + dists[j]);
+                                    if (double.IsNaN(dists[j]))
+                                    {
+                                        Console.WriteLine("bad");
+                                        double[] dists2 = s.distanceBetweenAllPointsAvg;
+                                    }
+                                    sb.Append(" ");
+                                    break;
+                                default:
+                                    break;
+                            }
+                            i++;
+                        }
+                    }
+                    else
+                    {
+                        var v = s.GetType().GetProperty(pName).GetValue(s, null);
+                        sb.Append(i + ":" + v + "  " );
+                        i++;
+                    }
+                }
+                sb.Append("\n");
+            }
+            return sb.ToString();
+        }            
         /*
          * rawSkelFromStride - gets the underlying skelton list 
          */
@@ -303,6 +367,8 @@ namespace KinectTrack
                     }
                 }
             }
+            // Handle cases where we don't find a last frame
+            if (this.lastFrame <= this.firstFrame) this.lastFrame = this.capturedFrames.Count-1;
             return;
         }
 
@@ -381,14 +447,16 @@ namespace KinectTrack
             get
             {
                 double widthSum = 0;
-                for (int i = firstFrame; i < lastFrame + 1; i++)
+                for (int i = firstFrame; i < lastFrame; i++)
                 {
                     DanSkeleton curSkel = capturedFrames[i];
                     widthSum += Math.Abs((curSkel.Joints[JointType.FootRight].Position.Z -
                         curSkel.Joints[JointType.FootLeft].Position.Z));
                 }
 
-                return (widthSum / (lastFrame - firstFrame));
+                var outvar = (widthSum / (lastFrame - firstFrame));
+
+                return outvar;
             }
         }
         
@@ -401,6 +469,7 @@ namespace KinectTrack
             var allDists = new List<List<double>>();
             int numDists = 190; // Dan says this is right // IS 190 right?
 
+            int lFramei = lastFrame < 0 ? capturedFrames.Count : lastFrame;
             for (int i = firstFrame; i < lastFrame + 1; i++)
             {
                 DanSkeleton curSkel = capturedFrames[i];
@@ -476,10 +545,15 @@ namespace KinectTrack
                     double sumVal = 0;
                     foreach (List<double> l in allDists)
                     {
+                        if (double.IsNaN(l[i]))
+                        {
+                            Console.WriteLine("crap");
+                        }
                         sumVal += l[i];
                     }
                     outList.Add(sumVal / allDists.Count);
                 }
+                if (outList.Count < 100) throw new Exception("NOOOOOOOOOOOOOOOOOOOOOO");
                 return outList.ToArray();
             }
         }
@@ -692,5 +766,6 @@ namespace KinectTrack
 
         //private void renderA
         public int numFrames { get; set; }
+
     }
 }
