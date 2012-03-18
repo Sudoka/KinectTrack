@@ -42,7 +42,7 @@ namespace KinectTrack
             {   //not training just need to turn data into clusters
                 initKlusters(this.klusterFile);
                 assignAllToKlusters();
-                printDataAsKlusters(this.classifyFile);
+                printDataAsKlusters(this.trainingAsKlusters);
             }
         }
 
