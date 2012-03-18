@@ -524,23 +524,28 @@ namespace KinectTrack
             List<List<Skeleton>> masterSkelList = new List<List<Skeleton>>();
             List<Stride> fileStrides = new List<Stride>();
 
-            fileStrides = Stride.loadListOfStridesFromFile("paulCrazyLegs.txt");
+            fileStrides = Stride.loadListOfStridesFromFile("classifyPaulCrazy.txt");
             //Stride.writeListOfStridesToFile(fileStrides, "combinedDataCopy.txt");
             //var blob = Stride.listOfStridesToARFF(fileStrides);
             for (int i = 0; i < fileStrides.Count; i++)
             {
                 masterSkelList.Add(fileStrides[i].rawSkelFromStride());
-                //normalize skeletons
+                //normalize skeletons and shift to center (added)
+                SkeletonPoint newCenter = new SkeletonPoint();
+                newCenter.X = 0;
+                newCenter.Y = 0;
+                newCenter.Z = 0;
                 for (int j = 0; j < masterSkelList[i].Count; j++)
                 {
                     masterSkelList[i][j] = normalizeSkel(masterSkelList[i][j]);
+                    masterSkelList[i][j] = shiftSkel(masterSkelList[i][j], newCenter);  //shift values
                 }
             }
             int fourPower=1;
             for (int i = 1; i <= 5; i++)
             {
                 fourPower *= 4;
-                skelListStats s = new skelListStats(masterSkelList, false, fourPower, "klusters", "paulCrazyLegsAsKlusters");
+                skelListStats s = new skelListStats(masterSkelList, false, fourPower, "klusters", "classifyPaulCrazyAsKlusters");
             }
             
 

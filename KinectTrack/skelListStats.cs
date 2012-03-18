@@ -36,7 +36,7 @@ namespace KinectTrack
                 trainKlusters();     //use k-means clustering to get final cluster values
                 printKlusters(this.klusterFile);     //print the trained clusters to a file so they can be used later for classifying
                 assignAllToKlusters();
-                printDataAsKlusters(this.trainingAsKlusters);  //TODO: print the actual data as represented by clusters
+                //printDataAsKlusters(this.trainingAsKlusters);  //TODO: print the actual data as represented by clusters
             }
             else
             {   //not training just need to turn data into clusters
